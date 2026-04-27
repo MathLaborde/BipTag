@@ -8,14 +8,15 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "tb_inventory",
-    foreignKeys = [
+    // Removido temporariamente para teste
+    /* foreignKeys = [
         ForeignKey(
             entity = User::class,
             parentColumns = ["id"],
             childColumns = ["userId"],
             onDelete = ForeignKey.CASCADE
         )
-    ],
+    ], */
     indices = [Index(value = ["userId"])]
 )
 class Inventory (
@@ -24,6 +25,6 @@ class Inventory (
     val name: String = "",
     val description: String = "",
     val category: String = "",
-    val status: String = "",
+    val status: String = "Created",
     @ColumnInfo(name = "fiscal_note") val fiscalNote: ByteArray? = null,
 )

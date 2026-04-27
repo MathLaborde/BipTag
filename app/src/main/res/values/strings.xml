@@ -18,4 +18,9 @@
     <string name="postgresql_supabase">PostgreSQL · Supabase</string>
     <string name="android_nativo_jetpack_compose_nfc">Native Android · Jetpack Compose · NFC</string>
     <string name="technologies">Technologies</string>
+    <string name="new_item">New Item</string>
+    <string name="save">Save</string>
+    <string name="description">Description</string>
+    <string name="name">Name</string>
+    <string name="category">Category</string>
 </resources>
