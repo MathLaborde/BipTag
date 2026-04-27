@@ -154,7 +154,7 @@ fun ContentInventoryFormScreen(modifier: Modifier) {
                     keyboardType = KeyboardType.NumberPassword,
                     imeAction = ImeAction.Next
                 ),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
@@ -176,7 +176,7 @@ fun ContentInventoryFormScreen(modifier: Modifier) {
                     keyboardType = KeyboardType.NumberPassword,
                     imeAction = ImeAction.Next
                 ),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
@@ -198,7 +198,7 @@ fun ContentInventoryFormScreen(modifier: Modifier) {
                     keyboardType = KeyboardType.NumberPassword,
                     imeAction = ImeAction.Next
                 ),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
@@ -228,7 +228,7 @@ fun ContentInventoryFormScreen(modifier: Modifier) {
                     }
                 }
             },
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Black)
         ) {
             Text(stringResource(R.string.save))

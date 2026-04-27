@@ -1,7 +1,6 @@
 package br.com.biptag.screens
 
 import android.content.res.Configuration
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,23 +13,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Inventory2
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Switch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -140,9 +136,8 @@ fun ProfileContentScreen(modifier: Modifier) {
 
             ProfileCardItem(
                 label = stringResource(R.string.notifications),
-                value = stringResource(R.string.activated),
                 trailingContent = {
-                    Switch(checked = true, onCheckedChange = {})
+                    Switch( modifier = Modifier.padding(0.dp), checked = true, onCheckedChange = {})
                 }
             )
 
@@ -180,7 +175,7 @@ fun ProfileCardItem(
 ) {
     OutlinedCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
@@ -190,7 +185,7 @@ fun ProfileCardItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween) {
                 if (value != null) {
                     Text(
                         text = label,

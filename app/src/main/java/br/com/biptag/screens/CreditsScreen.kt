@@ -123,7 +123,7 @@ fun CreditsContentScreen(modifier: Modifier){
             Spacer(modifier = Modifier.height(16.dp))
 
             Card(
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .fillMaxWidth(),
             ) {
