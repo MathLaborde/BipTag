@@ -83,8 +83,8 @@ val Typography = Typography(
     displayMedium = TextStyle(
         fontFamily = poppinsFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 64.sp,
-        lineHeight = 68.sp,
+        fontSize = 32.sp,
+        lineHeight = 34.sp,
         letterSpacing = 0.5.sp
     ),
     displaySmall = TextStyle(
