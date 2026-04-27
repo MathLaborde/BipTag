@@ -1,3 +1,21 @@
 <resources>
     <string name="app_name">Bip Tag</string>
+    <string name="profile">Profile</string>
+    <string name="inventory">Inventory</string>
+    <string name="personal_data">Personal data</string>
+    <string name="phone">Phone Number</string>
+    <string name="notifications">Notifications</string>
+    <string name="activated">Activated</string>
+    <string name="app_credits">App Credits</string>
+    <string name="logout">Logout</string>
+    <string name="credits">Credits</string>
+    <string name="back">Back</string>
+    <string name="fiap_sistemas_de_informa_o_2026">FIAP — Sistemas de Informação 2026</string>
+    <string name="team">Team</string>
+    <string name="bip_tag_abreviation">BT</string>
+    <string name="biptag">BipTag</string>
+    <string name="version">Version 1.0.0 — MVP</string>
+    <string name="postgresql_supabase">PostgreSQL · Supabase</string>
+    <string name="android_nativo_jetpack_compose_nfc">Native Android · Jetpack Compose · NFC</string>
+    <string name="technologies">Technologies</string>
 </resources>
