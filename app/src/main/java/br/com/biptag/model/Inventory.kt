@@ -27,4 +27,5 @@ class Inventory (
     val category: String = "",
     val status: String = "Created",
     @ColumnInfo(name = "fiscal_note") val fiscalNote: ByteArray? = null,
+    @ColumnInfo(name = "image") val image: ByteArray? = null,
 )
