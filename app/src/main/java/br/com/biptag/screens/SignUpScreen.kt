@@ -44,10 +44,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import br.com.biptag.navigation.Destination
 import br.com.biptag.ui.theme.BipTagTheme
 
 @Composable
-fun SignUpScreen() {
+fun SignUpScreen(navController: NavController) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -55,7 +58,7 @@ fun SignUpScreen() {
     ) {
         Scaffold(
             topBar = { MyTopAppBar() },
-            bottomBar = {BottomButtons()}
+            bottomBar = {BottomButtons(navController = navController)}
         ) { paddingValues -> paddingValues
             Column(
                 modifier = Modifier
@@ -72,7 +75,7 @@ fun SignUpScreen() {
 @Composable
 private fun SignUpScreenPreview() {
     BipTagTheme() {
-        SignUpScreen()
+        SignUpScreen(navController = rememberNavController())
     }
 }
 
@@ -360,11 +363,16 @@ private fun FormSignUpPreview() {
 }
 
 @Composable
-fun BottomButtons() {
+fun BottomButtons(navController: NavController) {
     Column(
     ) {
         Button(
-            onClick = {},
+            onClick = {
+                navController
+                    .navigate(
+                        Destination.LoginScreen.route
+                    )
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(55.dp)
@@ -393,7 +401,12 @@ fun BottomButtons() {
                 fontWeight = FontWeight.Bold
             )
             TextButton(
-                onClick = {},
+                onClick = {
+                    navController
+                        .navigate(
+                            Destination.LoginScreen.route
+                        )
+                },
                 contentPadding = PaddingValues(horizontal = 5.dp)
             ) {
                 Text(
@@ -411,6 +424,6 @@ fun BottomButtons() {
 @Composable
 private fun BottomButtonsPreview() {
     BipTagTheme() {
-        BottomButtons()
+        BottomButtons(navController = rememberNavController())
     }
 }

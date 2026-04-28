@@ -61,6 +61,8 @@ dependencies {
 
     // Room dependencies
     implementation(libs.androidx.room.runtime)
-    
     ksp(libs.androidx.room.compiler)
+
+    // Navigation Compose dependencies
+    implementation(libs.androidx.navigation.compose)
 }

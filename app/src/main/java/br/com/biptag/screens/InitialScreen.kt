@@ -16,10 +16,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import br.com.biptag.navigation.Destination
 import br.com.biptag.ui.theme.BipTagTheme
 
 @Composable
-fun InitialScreen() {
+fun InitialScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -85,7 +88,12 @@ fun InitialScreen() {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
-                    onClick = {},
+                    onClick = {
+                        navController
+                            .navigate(
+                                Destination.LoginScreen.route
+                            )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -98,7 +106,12 @@ fun InitialScreen() {
                     Text("Entrar", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
                 OutlinedButton(
-                    onClick = {},
+                    onClick = {
+                        navController
+                            .navigate(
+                                Destination.SignUpScreen.route
+                            )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -120,6 +133,6 @@ fun InitialScreen() {
 @Composable
 private fun InitialScreenPreview() {
     BipTagTheme() {
-        InitialScreen()
+        InitialScreen(rememberNavController())
     }
 }

@@ -36,10 +36,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import br.com.biptag.navigation.Destination
 import br.com.biptag.ui.theme.BipTagTheme
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -47,7 +50,8 @@ fun LoginScreen() {
     ) {
         BottomSection(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
+                .align(Alignment.BottomCenter),
+            navController = navController
         )
         Column(
             modifier = Modifier
@@ -61,7 +65,7 @@ fun LoginScreen() {
             Spacer(modifier = Modifier.height(50.dp))
             TitleComponent()
             Spacer(modifier = Modifier.height(20.dp))
-            FormLogin()
+            FormLogin(navController)
             Spacer(modifier = Modifier.height(100.dp))
         }
     }
@@ -71,7 +75,7 @@ fun LoginScreen() {
 @Composable
 private fun LoginScreenPreview() {
     BipTagTheme() {
-        LoginScreen()
+        LoginScreen(rememberNavController())
     }
 }
 
@@ -150,7 +154,7 @@ private fun TitleComponentPreview() {
 }
 
 @Composable
-fun FormLogin(modifier: Modifier = Modifier) {
+fun FormLogin(navController: NavController) {
     Column() {
         OutlinedTextField(
             value = "seu@gmail.com",
@@ -212,7 +216,12 @@ fun FormLogin(modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.height(20.dp))
         Button(
-            onClick = {},
+            onClick = {
+                navController
+                    .navigate(
+                        Destination.HomeScreen.route
+                    )
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(55.dp)
@@ -244,13 +253,13 @@ fun FormLogin(modifier: Modifier = Modifier) {
 @Composable
 private fun FormLoginPreview() {
     BipTagTheme() {
-        FormLogin()
+        FormLogin(rememberNavController())
     }
 }
 
 
 @Composable
-fun BottomSection(modifier: Modifier = Modifier) {
+fun BottomSection(modifier: Modifier = Modifier,navController: NavController) {
     Column(
         modifier = modifier
     ) {
@@ -273,7 +282,12 @@ fun BottomSection(modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.Bold
             )
             TextButton(
-                onClick = {},
+                onClick = {
+                    navController
+                        .navigate(
+                            Destination.SignUpScreen.route
+                        )
+                },
                 contentPadding = PaddingValues(horizontal = 5.dp)
             ) {
                 Text(
@@ -291,6 +305,6 @@ fun BottomSection(modifier: Modifier = Modifier) {
 @Composable
 private fun BottomSectionPreview() {
     BipTagTheme() {
-        BottomSection()
+        BottomSection(navController = rememberNavController())
     }
 }

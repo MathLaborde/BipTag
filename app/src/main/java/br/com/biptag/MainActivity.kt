@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import br.com.biptag.navigation.NavigationRoutes
 import br.com.biptag.screens.CreditsScreen
 import br.com.biptag.screens.InitialScreen
 import br.com.biptag.screens.LoginScreen
@@ -16,10 +17,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             BipTagTheme {
-                //CreditsScreen()
-                //LoginScreen()
-                //SignUpScreen()
-                InitialScreen()
+                NavigationRoutes()
             }
         }
     }
