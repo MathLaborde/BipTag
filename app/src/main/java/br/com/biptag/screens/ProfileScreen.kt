@@ -33,7 +33,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.biptag.R
-import br.com.biptag.components.MyBottomBar
+import br.com.biptag.components.BottomBar
+import br.com.biptag.components.TopBar
 import br.com.biptag.ui.theme.BipTagTheme
 
 @Composable
@@ -42,10 +43,10 @@ fun ProfileScreen() {
     Surface(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
-                MyTopProfileBar()
+                TopBar(title = stringResource(R.string.profile))
             },
             bottomBar = {
-                MyBottomBar()
+                BottomBar()
             },
         ) { paddingValues ->
             ProfileContentScreen(modifier = Modifier.padding(paddingValues))

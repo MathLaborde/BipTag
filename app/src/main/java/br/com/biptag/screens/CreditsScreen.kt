@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import br.com.biptag.R
+import br.com.biptag.components.TopBar
 import br.com.biptag.ui.theme.BipTagTheme
 import br.com.biptag.ui.theme.Black
 
@@ -42,7 +44,10 @@ fun CreditsScreen() {
     Surface(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
-                MyTopCreditsBar()
+                TopBar(
+                    title = stringResource(R.string.credits),
+                    startIcon = Icons.AutoMirrored.Outlined.ArrowBack
+                )
             },
             bottomBar = {
                 MyBottomCreditsBar()
@@ -126,40 +131,38 @@ fun CreditsContentScreen(modifier: Modifier){
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .fillMaxWidth(),
+                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background)
             ) {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth()
-                ) {
-                    team.forEach { people ->
-                        Row(
-                            modifier = Modifier
-                                .padding(bottom = 4.dp, top = 4.dp)
-                                .clickable {
-                                    val intent =
-                                        Intent(Intent.ACTION_VIEW, people.linkedIn.toUri())
-                                    context.startActivity(intent)
-                                }
-                        ) {
-                            Row (
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(people.name)
-
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                    tint = MaterialTheme.colorScheme.secondary
-                                )
+                team.forEach { people ->
+                    Card(
+                        modifier = Modifier
+                            .padding(vertical = 4.dp)
+                            .clickable {
+                                val intent =
+                                    Intent(Intent.ACTION_VIEW, people.linkedIn.toUri())
+                                context.startActivity(intent)
                             }
+                    ) {
+                        Row (
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Text(people.name)
 
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
                         }
+
                     }
                 }
+
             }
         }
         Column(
@@ -202,32 +205,6 @@ fun MyBottomCreditsBar(){
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-    }
-}
-
-@Composable
-fun MyTopCreditsBar() {
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .height(56.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.secondary
-            )
-            Text(
-                modifier = Modifier.padding(start = 8.dp),
-                text = stringResource(R.string.credits),
-                style = MaterialTheme.typography.titleMedium,
-            )
-        }
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
 

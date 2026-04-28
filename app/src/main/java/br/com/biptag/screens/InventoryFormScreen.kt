@@ -56,6 +56,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.biptag.R
+import br.com.biptag.components.TopBar
 import br.com.biptag.model.Inventory
 import br.com.biptag.repository.RoomInventoryRepository
 import br.com.biptag.ui.theme.BipTagTheme
@@ -66,11 +67,12 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun InventoryFormScreen() {
-
-
     Scaffold(
         topBar = {
-            MyTopInventoryFormBar()
+            TopBar(
+                title = stringResource(R.string.new_item),
+                startIcon = Icons.AutoMirrored.Outlined.ArrowBack
+            )
         },
     ) { paddingValues ->
         ContentInventoryFormScreen(modifier = Modifier.padding(paddingValues))
@@ -79,8 +81,6 @@ fun InventoryFormScreen() {
 
 @Composable
 fun ContentInventoryFormScreen(modifier: Modifier) {
-
-
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
@@ -274,33 +274,6 @@ fun UserImage(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun MyTopInventoryFormBar () {
-    Column(){
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .height(56.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.secondary
-            )
-            Text(
-                modifier = Modifier.padding(start = 8.dp),
-                text = stringResource(R.string.new_item),
-                style = MaterialTheme.typography.titleMedium,
-            )
-        }
-
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
 

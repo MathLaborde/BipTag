@@ -19,13 +19,13 @@ import androidx.room.PrimaryKey
     ], */
     indices = [Index(value = ["userId"])]
 )
-class Inventory (
+data class Inventory (
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val userId: Int = 0,
     val name: String = "",
     val description: String = "",
     val category: String = "",
-    val status: String = "Created",
+    val status: String = "Created", // Created, Verified, Stolen
     @ColumnInfo(name = "fiscal_note") val fiscalNote: ByteArray? = null,
     @ColumnInfo(name = "image") val image: ByteArray? = null,
 )

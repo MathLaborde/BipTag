@@ -3,6 +3,7 @@ package br.com.biptag.repository
 import android.content.Context
 import br.com.biptag.dao.BipTagDatabase
 import br.com.biptag.model.Inventory
+import kotlinx.coroutines.flow.Flow
 
 class RoomInventoryRepository(context: Context): RepositoryInterface<Inventory> {
     private val bipTagDatabase= BipTagDatabase.getInstance(context).inventoryDao()
@@ -21,5 +22,9 @@ class RoomInventoryRepository(context: Context): RepositoryInterface<Inventory> 
 
     override fun delete(entity: Inventory): Int {
         TODO("Not yet implemented")
+    }
+
+    fun getAllByUser(id: Int): Flow<List<Inventory>> {
+        return bipTagDatabase.getAllByUserId(id)
     }
 }
