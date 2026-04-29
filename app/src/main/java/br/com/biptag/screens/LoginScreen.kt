@@ -1,6 +1,7 @@
 package br.com.biptag.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,6 +49,7 @@ fun LoginScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
+            .safeDrawingPadding()
     ) {
         BottomSection(
             modifier = Modifier
@@ -129,6 +132,7 @@ private fun BipTagLogoPreview() {
 fun TitleComponent() {
     Column(
         horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier
             .fillMaxWidth()
     ) {
@@ -155,25 +159,31 @@ private fun TitleComponentPreview() {
 
 @Composable
 fun FormLogin(navController: NavController) {
-    Column() {
+    Column(
+    ) {
+        Text(
+            text = "Email",
+            color = Color.Gray,
+            modifier = Modifier.padding(bottom = 4.dp),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold
+        )
         OutlinedTextField(
-            value = "seu@gmail.com",
+            value = "",
             onValueChange = {},
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults
                 .colors(
                     unfocusedBorderColor = Color(0xFFB6B6B6),
                     unfocusedTextColor = Color(0xFFB6B6B6)
                 ),
-            label = {
+            placeholder = {
                 Text(
-                    text = "Email",
+                    text = "seu@email.com",
                     color = Color(0xFFB6B6B6),
                     fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
                 )
             },
             leadingIcon = {
@@ -185,24 +195,29 @@ fun FormLogin(navController: NavController) {
             }
         )
         Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "Senha",
+            color = Color.Gray,
+            modifier = Modifier.padding(bottom = 4.dp),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold
+        )
         OutlinedTextField(
-            value = "••••••••",
+            value = "",
             onValueChange = {},
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults
                 .colors(
                     unfocusedBorderColor = Color(0xFFB6B6B6),
                     unfocusedTextColor = Color(0xFFB6B6B6)
                 ),
-            label = {
+            placeholder = {
                 Text(
-                    text = "Senha",
+                    text = "••••••••",
                     color = Color(0xFFB6B6B6),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 15.sp
                 )
             },
             leadingIcon = {
@@ -219,13 +234,12 @@ fun FormLogin(navController: NavController) {
             onClick = {
                 navController
                     .navigate(
-                        Destination.HomeScreen.route
+                        Destination.InventoryScreen.route
                     )
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(55.dp)
-                .padding(4.dp),
+                .height(48.dp),
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Black
@@ -234,16 +248,18 @@ fun FormLogin(navController: NavController) {
             Text(
                 text = "Entrar",
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp
+                fontSize = 16.sp
             )
         }
         TextButton(
-            onClick = {}
+            onClick = {},
+            contentPadding = PaddingValues(0.dp),
         ) {
             Text(
                 text = "Esqueci minha senha",
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF404040)
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF404040),
+                fontSize = 14.sp
             )
         }
     }
@@ -274,29 +290,27 @@ fun BottomSection(modifier: Modifier = Modifier,navController: NavController) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(vertical = 12.dp)
         ) {
             Text(
                 text = "Não tem conta?",
                 fontSize = 14.sp,
-                color = Color.Gray,
-                fontWeight = FontWeight.Bold
+                color = Color.Gray
             )
-            TextButton(
-                onClick = {
-                    navController
-                        .navigate(
-                            Destination.SignUpScreen.route
-                        )
-                },
-                contentPadding = PaddingValues(horizontal = 5.dp)
-            ) {
-                Text(
+            Text(
                 text = "Cadastre-se",
                 fontSize = 14.sp,
                 color = Color.Gray,
-                fontWeight = FontWeight.Bold
-                )
-            }
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(start = 4.dp)
+                    .clickable{
+                        navController
+                            .navigate(
+                                Destination.SignUpScreen.route
+                    )
+                }
+            )
         }
     }
 }

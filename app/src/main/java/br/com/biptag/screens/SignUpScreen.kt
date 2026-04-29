@@ -2,6 +2,7 @@ package br.com.biptag.screens
 
 import android.graphics.fonts.FontFamily
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -55,9 +57,10 @@ fun SignUpScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0XFFFFFFFF))
+            .safeDrawingPadding()
     ) {
         Scaffold(
-            topBar = { MyTopAppBar() },
+            topBar = { MyTopAppBar(navController) },
             bottomBar = {BottomButtons(navController = navController)}
         ) { paddingValues -> paddingValues
             Column(
@@ -81,25 +84,24 @@ private fun SignUpScreenPreview() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTopAppBar() {
-
+fun MyTopAppBar(navController: NavController) {
     Column() {
         TopAppBar(
             title = {
                 Text(
-                    text = "Criar conta",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 18.sp
+                    text = "Criar conta"
                 )
             },
             navigationIcon = {
-                IconButton(onClick = {}) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Arrow Back Icon",
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Arrow Back Icon",
+                    modifier = Modifier
+                        .padding(start = 8.dp, end = 8.dp)
+                        .clickable{
+                            navController.popBackStack()
+                        }
+                )
             }
         )
         HorizontalDivider(
@@ -113,7 +115,7 @@ fun MyTopAppBar() {
 @Composable
 private fun MyTopAppBarPreview() {
     BipTagTheme() {
-        MyTopAppBar()
+        MyTopAppBar(navController = rememberNavController())
     }
 }
 
@@ -151,7 +153,7 @@ fun FormSignUp() {
                 Text(
                     text = "Ex.: Maria Silva",
                     color = Color.Gray,
-                    fontSize = 13.sp
+                    fontSize = 15.sp
                 )
             },
             leadingIcon = {
@@ -159,7 +161,7 @@ fun FormSignUp() {
                     imageVector = Icons.Default.PersonOutline,
                     contentDescription = "Person Icon",
                     tint = Color.Gray,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(26.dp)
                 )
             }
         )
@@ -192,7 +194,7 @@ fun FormSignUp() {
                 Text(
                     text = "seu@gmail.com.br",
                     color = Color.Gray,
-                    fontSize = 13.sp
+                    fontSize = 15.sp
                 )
             },
             leadingIcon = {
@@ -200,7 +202,7 @@ fun FormSignUp() {
                     imageVector = Icons.Default.MailOutline,
                     contentDescription = "Mail Outline Icon",
                     tint = Color.Gray,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(26.dp)
                 )
             }
         )
@@ -233,7 +235,7 @@ fun FormSignUp() {
                 Text(
                     text = "(11) 99999-9999",
                     color = Color.Gray,
-                    fontSize = 13.sp
+                    fontSize = 15.sp
                 )
             },
             leadingIcon = {
@@ -241,7 +243,7 @@ fun FormSignUp() {
                     imageVector = Icons.Default.Phone,
                     contentDescription = "Phone Icon",
                     tint = Color.Gray,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(26.dp)
                 )
             }
         )
@@ -365,6 +367,8 @@ private fun FormSignUpPreview() {
 @Composable
 fun BottomButtons(navController: NavController) {
     Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
     ) {
         Button(
             onClick = {
@@ -375,19 +379,20 @@ fun BottomButtons(navController: NavController) {
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(55.dp)
-                .padding(4.dp),
-            shape = RoundedCornerShape(10.dp),
+                .height(55.dp),
+            shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Black
+                containerColor = Color(0xFF2A2A2A)
             )
         ) {
             Text(
-                text = "Criar Conta",
+                text = "Criar conta",
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp
+                fontSize = 16.sp,
+                color = Color.White
             )
         }
+        Spacer(modifier = Modifier.height(12.dp))
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -397,25 +402,22 @@ fun BottomButtons(navController: NavController) {
             Text(
                 text = "Já tem conta?",
                 fontSize = 14.sp,
-                color = Color.Gray,
-                fontWeight = FontWeight.Bold
+                color = Color(0xFF404040)
             )
-            TextButton(
-                onClick = {
-                    navController
-                        .navigate(
-                            Destination.LoginScreen.route
-                        )
-                },
-                contentPadding = PaddingValues(horizontal = 5.dp)
-            ) {
-                Text(
-                    text = "Entrar",
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            Text(
+                text = "Entrar",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(start = 4.dp)
+                    .clickable{
+                        navController
+                            .navigate(
+                                Destination.LoginScreen.route
+                            )
+                    }
+            )
         }
     }
 }

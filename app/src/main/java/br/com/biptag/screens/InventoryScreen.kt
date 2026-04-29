@@ -15,15 +15,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,16 +38,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import br.com.biptag.R
 import br.com.biptag.components.BottomBar
 import br.com.biptag.components.TopBar
 import br.com.biptag.model.Inventory
+import br.com.biptag.navigation.Destination
 import br.com.biptag.repository.RoomInventoryRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import br.com.biptag.ui.theme.Black
@@ -54,7 +62,7 @@ import br.com.biptag.ui.theme.White
 import br.com.fiap.recipes.utils.convertByteArrayToBitmap
 
 @Composable
-fun InventoryScreen() {
+fun InventoryScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopBar(
@@ -63,11 +71,28 @@ fun InventoryScreen() {
             )
         },
         bottomBar = {
-            BottomBar()
+            BottomBar(navController)
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    navController
+                        .navigate(
+                            Destination.InventoryFormScreen.route
+                        )
+                },
+                shape = CircleShape,
+                containerColor = Color(0xFF2A2A2A),
+                contentColor = Color.White
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Button"
+                )
+            }
         },
     ) { paddingValues ->
         ContentInventoryScreen(modifier = Modifier.padding(paddingValues))
-
     }
 }
 
@@ -81,14 +106,13 @@ fun ContentInventoryScreen(modifier: Modifier) {
 
     Column(
         modifier = modifier
+            .padding(horizontal = 16.dp)
     ) {
         MySearchBar()
-
         Text(
             text = "${items.size} items found",
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier.padding(horizontal = 2.dp),
         )
-
         LazyColumn(
             modifier = Modifier.weight(1f)
         ) {
@@ -195,18 +219,19 @@ fun MySearchBar() {
     OutlinedTextField(
         value = searchText,
         onValueChange = { searchText = it },
-        label = { Text(stringResource(R.string.search)) },
+        placeholder = { Text("Buscar item...", color = Color.Gray) },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.Gray) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "",
-                tint = MaterialTheme.colorScheme.outlineVariant
-            )
-        },
-        shape = RoundedCornerShape(8.dp)
+            .padding(vertical = 16.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedBorderColor = Color(0xFFE0E0E0),
+            focusedBorderColor = Color(0xFF333333),
+            unfocusedContainerColor = Color.White,
+            focusedContainerColor = Color.White
+        ),
+        singleLine = true
     )
 }
 
@@ -217,6 +242,6 @@ fun MySearchBar() {
 @Composable
 private fun InventoryScreenPreview() {
     BipTagTheme {
-        InventoryScreen()
+        InventoryScreen(navController = rememberNavController())
     }
 }

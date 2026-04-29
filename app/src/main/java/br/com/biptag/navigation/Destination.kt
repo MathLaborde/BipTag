@@ -7,14 +7,10 @@ sealed class Destination(val route: String){
     object LoginScreen : Destination("login")
     object SignUpScreen : Destination("signup")
 
-    object HomeScreen : Destination("home")
+    object InventoryScreen : Destination("inventory")
     object CreditsScreen : Destination("credits")
     object InventoryFormScreen : Destination("inventory_form")
 
     // Rotas Dinânimas
-    object ProfileScreen : Destination("profile/{userId}"){
-        fun createRoute(userId: String): String {
-            return "profile/$userId"
-        }
-    }
+    object ProfileScreen : Destination("profile")
 }

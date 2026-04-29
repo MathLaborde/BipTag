@@ -34,19 +34,24 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import br.com.biptag.R
 import br.com.biptag.components.TopBar
 import br.com.biptag.ui.theme.BipTagTheme
 import br.com.biptag.ui.theme.Black
 
 @Composable
-fun CreditsScreen() {
+fun CreditsScreen(navController: NavController) {
     Surface(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
                 TopBar(
                     title = stringResource(R.string.credits),
-                    startIcon = Icons.AutoMirrored.Outlined.ArrowBack
+                    startIcon = Icons.AutoMirrored.Outlined.ArrowBack,
+                    onClick = {
+                        navController.popBackStack()
+                    }
                 )
             },
             bottomBar = {
@@ -216,6 +221,6 @@ fun MyBottomCreditsBar(){
 @Composable
 private fun CreditsScreenPreview() {
     BipTagTheme() {
-        CreditsScreen()
+        CreditsScreen(navController = rememberNavController())
     }
 }

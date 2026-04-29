@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,9 +27,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -37,6 +40,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,14 +51,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import br.com.biptag.R
 import br.com.biptag.components.TopBar
 import br.com.biptag.model.Inventory
@@ -66,12 +75,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun InventoryFormScreen() {
+fun InventoryFormScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopBar(
                 title = stringResource(R.string.new_item),
-                startIcon = Icons.AutoMirrored.Outlined.ArrowBack
+                startIcon = Icons.AutoMirrored.Outlined.ArrowBack,
+                onClick = {
+                    navController.popBackStack()
+                }
             )
         },
     ) { paddingValues ->
@@ -89,39 +101,25 @@ fun ContentInventoryFormScreen(modifier: Modifier) {
     val context = LocalContext.current
     val inventoryRepository = remember { RoomInventoryRepository(context) }
 
-    // Criar uma variável que armazena uma
-    // imagem default para o perfil
-    val placeholderImage = BitmapFactory
-        .decodeResource(
-            context.resources,
-            R.drawable.no_image
-        )
-
-    // Armazenar a imagem de profile
-    // em uma variável de estado do tipo Bitmap
     var itemImage by remember {
-        mutableStateOf<Bitmap>(placeholderImage)
+        mutableStateOf<Bitmap?>(null)
     }
 
-    // Criar um lançador de atividade para
-    // abrir a galeria de imagens
     val launchImage = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) {uri ->
-        if (Build.VERSION.SDK_INT < 28){
-            itemImage = MediaStore
-                .Images
-                .Media
-                .getBitmap(
-                    context.contentResolver,
-                    uri
-                )
-        } else {
-            if (uri != null){
+    ) { uri ->
+        if (uri != null) {
+            if (Build.VERSION.SDK_INT < 28) {
+                itemImage = MediaStore
+                    .Images
+                    .Media
+                    .getBitmap(
+                        context.contentResolver,
+                        uri
+                    )
+            } else {
                 val source = ImageDecoder.createSource(context.contentResolver, uri)
                 itemImage = ImageDecoder.decodeBitmap(source)
-            } else{
-                itemImage = placeholderImage
             }
         }
     }
@@ -131,85 +129,100 @@ fun ContentInventoryFormScreen(modifier: Modifier) {
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column() {
-
+    ){
+        Column(
+            modifier = Modifier
+                .padding(vertical = 6.dp)
+        ) {
             UserImage(
                 profileImage = itemImage,
                 launchImage = launchImage
             )
-
+            Text(
+                text = "Nome do item",
+                fontSize = 12.sp,
+                color = Color.Gray,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text(stringResource(R.string.name)) },
+                singleLine = true,
+                placeholder = { Text("Ex.: Notebook Dell...", color = Color.LightGray) },
                 leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Outlined.Inventory2,
-                        contentDescription = "",
-                        tint = MaterialTheme.colorScheme.outlineVariant
-                    )
+                    Icon(Icons.Outlined.Inventory2, contentDescription = null, tint = Color.Gray)
                 },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.NumberPassword,
-                    imeAction = ImeAction.Next
-                ),
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.LightGray // Deixa a borda mais suave
+                )
             )
-
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text(stringResource(R.string.description)) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Outlined.Description,
-                        contentDescription = "",
-                        tint = MaterialTheme.colorScheme.outlineVariant
-                    )
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.NumberPassword,
-                    imeAction = ImeAction.Next
-                ),
-                shape = RoundedCornerShape(8.dp),
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-
-            )
-
-            OutlinedTextField(
-                value = category,
-                onValueChange = { category = it },
-                label = { Text(stringResource(R.string.category)) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Outlined.Category,
-                        contentDescription = "",
-                        tint = MaterialTheme.colorScheme.outlineVariant
-                    )
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.NumberPassword,
-                    imeAction = ImeAction.Next
-                ),
-                shape = RoundedCornerShape(8.dp),
+                    .padding(vertical = 6.dp)
+            ) {
+                Text(
+                    text = "Descrição",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    placeholder = {
+                        Text(
+                            "Marca, modelo, número de série...",
+                            color = Color.LightGray
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp), // Aumentamos a altura para simular uma caixa de texto grande
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = Color.LightGray)
+                )
+            }
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-            )
+                    .padding(vertical = 6.dp)
+            ) {
+                Text(
+                    text = "Categoria",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                OutlinedTextField(
+                    value = category,
+                    onValueChange = { category = it },
+                    singleLine = true,
+                    placeholder = { Text("Selecione...", color = Color.LightGray) },
+                    leadingIcon = {
+                        Icon(Icons.Outlined.Category, contentDescription = null, tint = Color.Gray)
+                    },
+                    trailingIcon = {
+                        // Setinha para simular que é um menu de seleção
+                        Icon(
+                            Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = Color.Gray
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = Color.LightGray)
+                )
+            }
         }
-
-        Button (
+        Button(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
-                .padding(horizontal = 8.dp),
+                .height(48.dp),
             onClick = {
                 // Configurar depois o userId
                 val inventory = Inventory(
@@ -217,13 +230,13 @@ fun ContentInventoryFormScreen(modifier: Modifier) {
                     description = description,
                     category = category,
                     userId = 0,
-                    image = convertBitmapToByteArray(itemImage)
+                    image = itemImage?.let { convertBitmapToByteArray(it) }
                 )
 
                 scope.launch(Dispatchers.IO) {
                     try {
                         inventoryRepository.save(inventory)
-                    } catch (e: Exception){
+                    } catch (e: Exception) {
                         e.printStackTrace()
                     }
                 }
@@ -243,10 +256,13 @@ fun UserImage(
 ) {
     Card (
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.outlineVariant),
+        colors = CardDefaults
+            .cardColors(
+                containerColor = MaterialTheme.colorScheme.outlineVariant
+        ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(280.dp)
+            .height(160.dp)
             .padding(8.dp)
     ) {
         Box(
@@ -255,23 +271,34 @@ fun UserImage(
                 .clickable {
                     launchImage.launch("image/*")
                 },
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ){
             if (profileImage != null) {
                 Image(
                     bitmap = profileImage.asImageBitmap(),
                     contentDescription = "",
                     modifier = Modifier
-                        .size(360.dp),
+                        .fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
             } else {
-                Icon(
-                    imageVector = Icons.Filled.AddAPhoto,
-                    contentDescription = "",
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.PhotoCamera,
+                        contentDescription = "Adicionar foto",
+                        modifier = Modifier.size(32.dp),
+                        tint = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Adicionar foto do item",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                }
             }
         }
     }
@@ -284,6 +311,6 @@ fun UserImage(
 @Composable
 private fun InventoryFormScreenPreview() {
     BipTagTheme {
-        InventoryFormScreen()
+        InventoryFormScreen(rememberNavController())
     }
 }

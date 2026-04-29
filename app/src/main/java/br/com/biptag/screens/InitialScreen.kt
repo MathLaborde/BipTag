@@ -27,6 +27,7 @@ fun InitialScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(color = Color.White)
+            .safeDrawingPadding()
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

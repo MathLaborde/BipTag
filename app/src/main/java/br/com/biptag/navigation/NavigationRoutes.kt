@@ -1,15 +1,15 @@
 package br.com.biptag.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import br.com.biptag.screens.HomeScreen
+import br.com.biptag.screens.CreditsScreen
 import br.com.biptag.screens.InitialScreen
 import br.com.biptag.screens.InventoryFormScreen
+import br.com.biptag.screens.InventoryScreen
 import br.com.biptag.screens.LoginScreen
+import br.com.biptag.screens.ProfileScreen
 import br.com.biptag.screens.SignUpScreen
 
 @Composable
@@ -30,27 +30,19 @@ fun NavigationRoutes() {
         composable(Destination.SignUpScreen.route){
             SignUpScreen(navController)
         }
-        composable(Destination.HomeScreen.route){
-            HomeScreen(navController)
+        composable(Destination.InventoryScreen.route){
+            InventoryScreen(navController)
         }
         composable(Destination.CreditsScreen.route){
-            //CreditsScreen(navController)
+            CreditsScreen(navController)
         }
         composable(Destination.InventoryFormScreen.route){
             InventoryFormScreen(navController)
         }
 
         // Telas Dinâmicas (com argumento)
-        composable(
-            route = Destination.ProfileScreen.route,
-            arguments = listOf(
-                navArgument("userId") {
-                    type = NavType.StringType
-                }
-            )
-        ) { backStackEntry ->
-            val userId = backStackEntry.arguments?.getString("userId")
-            //ProfileScreen(navController, userId)
+        composable(Destination.ProfileScreen.route){
+            ProfileScreen(navController)
         }
     }
 }
