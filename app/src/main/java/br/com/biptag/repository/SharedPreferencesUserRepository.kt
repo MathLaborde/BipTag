@@ -11,8 +11,9 @@ class SharedPreferencesUserRepository(context: Context) {
             Context.MODE_PRIVATE
         )
 
-    fun saveUser(name: String, email: String, phoneNumber: String, notifications: String) {
+    fun saveUser(id: Int, name: String, email: String, phoneNumber: String, notifications: String) {
         userPrefs.edit {
+            putInt("id", id)
             putString("name", name)
             putString("email", email)
             putString("phoneNumber", phoneNumber)
@@ -21,12 +22,14 @@ class SharedPreferencesUserRepository(context: Context) {
     }
 
     fun getUser(): User {
+        val idPrefs = userPrefs.getInt("id", 0)
         val namePrefs = userPrefs.getString("name", "")
         val emailPrefs = userPrefs.getString("email", "")
         val phoneNumberPrefs = userPrefs.getString("phoneNumber", "")
         val notifications = userPrefs.getString("notifications", "")
 
         return User(
+            id = idPrefs,
             name = namePrefs!!,
             email = emailPrefs!!,
             phoneNumber = phoneNumberPrefs!!,

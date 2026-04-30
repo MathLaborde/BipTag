@@ -7,6 +7,7 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -67,12 +68,15 @@ import androidx.navigation.compose.rememberNavController
 import br.com.biptag.R
 import br.com.biptag.components.TopBar
 import br.com.biptag.model.Inventory
+import br.com.biptag.navigation.Destination
 import br.com.biptag.repository.RoomInventoryRepository
+import br.com.biptag.repository.SharedPreferencesUserRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import br.com.biptag.ui.theme.Black
 import br.com.fiap.recipes.utils.convertBitmapToByteArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun InventoryFormScreen(navController: NavController) {
@@ -87,12 +91,12 @@ fun InventoryFormScreen(navController: NavController) {
             )
         },
     ) { paddingValues ->
-        ContentInventoryFormScreen(modifier = Modifier.padding(paddingValues))
+        ContentInventoryFormScreen(modifier = Modifier.padding(paddingValues), navController = navController)
     }
 }
 
 @Composable
-fun ContentInventoryFormScreen(modifier: Modifier) {
+fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
@@ -216,20 +220,30 @@ fun ContentInventoryFormScreen(modifier: Modifier) {
                 .fillMaxWidth()
                 .height(48.dp),
             onClick = {
+                val userShared = SharedPreferencesUserRepository(context)
+
                 // Configurar depois o userId
                 val inventory = Inventory(
                     name = name,
                     description = description,
                     category = category,
-                    userId = 0,
+                    userId = userShared.getUser().id,
                     image = itemImage?.let { convertBitmapToByteArray(it) }
                 )
 
                 scope.launch(Dispatchers.IO) {
                     try {
                         inventoryRepository.save(inventory)
+
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, "Usuário criado com sucesso!", Toast.LENGTH_SHORT).show()
+                            navController.navigate(Destination.InventoryScreen.route)
+                        }
                     } catch (e: Exception) {
                         e.printStackTrace()
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             },

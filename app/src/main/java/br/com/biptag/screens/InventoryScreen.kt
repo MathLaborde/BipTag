@@ -53,6 +53,7 @@ import br.com.biptag.components.TopBar
 import br.com.biptag.model.Inventory
 import br.com.biptag.navigation.Destination
 import br.com.biptag.repository.RoomInventoryRepository
+import br.com.biptag.repository.SharedPreferencesUserRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import br.com.biptag.ui.theme.Black
 import br.com.biptag.ui.theme.DarkGray
@@ -100,9 +101,11 @@ fun InventoryScreen(navController: NavController) {
 fun ContentInventoryScreen(modifier: Modifier) {
     val context = LocalContext.current
     val inventoryRepository = remember { RoomInventoryRepository(context) }
-    
+
+    val userShared = SharedPreferencesUserRepository(context)
+
     // Observa o Flow do banco de dados em tempo real
-    val items by inventoryRepository.getAllByUser(0).collectAsState(initial = emptyList())
+    val items by inventoryRepository.getAllByUser(userShared.getUser().id).collectAsState(initial = emptyList())
 
     Column(
         modifier = modifier

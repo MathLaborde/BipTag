@@ -264,11 +264,11 @@ fun FormLogin(navController: NavController) {
 
                         withContext(Dispatchers.Main) {
                             userShared.saveUser(
+                                id = user.id,
                                 name = user.name,
                                 email = user.email,
                                 phoneNumber = user.phoneNumber,
                                 notifications = user.notifications.toString()
-
                             )
                             navController.navigate(Destination.InventoryScreen.route)
                         }
