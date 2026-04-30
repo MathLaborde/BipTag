@@ -1,5 +1,6 @@
 package br.com.biptag.screens
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,16 +24,16 @@ import br.com.biptag.ui.theme.BipTagTheme
 
 @Composable
 fun InitialScreen(navController: NavController) {
-    Box(
+    Surface (
         modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.White)
-            .safeDrawingPadding()
+            .fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxSize()
+                .safeDrawingPadding()
                 .padding(24.dp)
         ) {
             Spacer(modifier = Modifier.weight(1f))
@@ -44,30 +45,30 @@ fun InitialScreen(navController: NavController) {
                 Box(
                     modifier = Modifier
                         .size(100.dp)
-                        .background(color = Color(0xFF2C2C2C), shape = CircleShape),
+                        .background(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = CircleShape
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "BT",
-                        color = Color.White,
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.displayLarge,
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "BipTag",
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    style = MaterialTheme.typography.displayLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Acompanhe e proteja o que mais importa. Sua gestão patrimonial, de forma simples e segura na palma da mão.",
-                    fontSize = 16.sp,
-                    color = Color.Gray,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 24.sp
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.secondary,
+                    textAlign = TextAlign.Center
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
@@ -77,10 +78,16 @@ fun InitialScreen(navController: NavController) {
             ) {
                 Box(modifier = Modifier
                     .size(width = 24.dp, height = 4.dp)
-                    .background(Color(0xFF2C2C2C), RoundedCornerShape(2.dp)))
+                    .background(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(2.dp)
+                    )
+                )
                 Box(modifier = Modifier
                     .size(width = 12.dp, height = 4.dp)
-                    .background(Color.LightGray, RoundedCornerShape(2.dp)))
+                    .background(
+                        color = MaterialTheme.colorScheme.tertiary,
+                        shape = RoundedCornerShape(2.dp)))
             }
             Spacer(modifier = Modifier.height(32.dp))
             Column(
@@ -98,13 +105,12 @@ fun InitialScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults
-                        .buttonColors(
-                            containerColor = Color(0xFF2C2C2C)
-                        )
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Entrar", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        text = "Entrar",
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
                 OutlinedButton(
                     onClick = {
@@ -119,10 +125,13 @@ fun InitialScreen(navController: NavController) {
                     shape = RoundedCornerShape(8.dp),
                     border = BorderStroke(
                         width = 1.dp,
-                        color = Color.LightGray
+                        color = MaterialTheme.colorScheme.tertiary
                     )
                 ) {
-                    Text("Criar conta", color = Color(0xFF2C2C2C), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        text = "Criar conta",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary)
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -130,7 +139,9 @@ fun InitialScreen(navController: NavController) {
     }
 }
 
-@Preview
+@Preview(
+    //uiMode = UI_MODE_NIGHT_YES
+)
 @Composable
 private fun InitialScreenPreview() {
     BipTagTheme() {

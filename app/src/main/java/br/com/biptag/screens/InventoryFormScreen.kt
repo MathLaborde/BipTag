@@ -63,7 +63,6 @@ import br.com.biptag.navigation.Destination
 import br.com.biptag.repository.RoomInventoryRepository
 import br.com.biptag.repository.SharedPreferencesUserRepository
 import br.com.biptag.ui.theme.BipTagTheme
-import br.com.biptag.ui.theme.Black
 import br.com.fiap.recipes.utils.convertBitmapToByteArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -151,7 +150,7 @@ fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController)
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.LightGray // Deixa a borda mais suave
+                    unfocusedBorderColor = Color.LightGray
                 )
             )
             Column(
@@ -239,7 +238,7 @@ fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController)
                 }
             },
             shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Black)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
         ) {
             Text(stringResource(R.string.save))
         }

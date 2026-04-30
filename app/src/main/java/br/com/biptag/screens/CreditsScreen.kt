@@ -39,7 +39,6 @@ import androidx.navigation.compose.rememberNavController
 import br.com.biptag.R
 import br.com.biptag.components.TopBar
 import br.com.biptag.ui.theme.BipTagTheme
-import br.com.biptag.ui.theme.Black
 
 @Composable
 fun CreditsScreen(navController: NavController) {
@@ -92,7 +91,7 @@ fun CreditsContentScreen(modifier: Modifier){
         ) {
             Surface(
                 shape = CircleShape,
-                color = Black,
+                color = MaterialTheme.colorScheme.background,
                 modifier = Modifier
                     .size(80.dp)
                     .align(Alignment.CenterHorizontally)
