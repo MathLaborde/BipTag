@@ -1,5 +1,6 @@
 package br.com.biptag.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,9 +31,15 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,11 +47,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import br.com.biptag.model.User
 import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.RoomUserRepository
 import br.com.biptag.ui.theme.BipTagTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun LoginScreen(navController: NavController) {
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -159,6 +172,13 @@ private fun TitleComponentPreview() {
 
 @Composable
 fun FormLogin(navController: NavController) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val userRepository = remember { RoomUserRepository(context) }
+
     Column(
     ) {
         Text(
@@ -169,8 +189,8 @@ fun FormLogin(navController: NavController) {
             fontWeight = FontWeight.SemiBold
         )
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = email,
+            onValueChange = { email = it },
             modifier = Modifier
                 .fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
@@ -203,8 +223,8 @@ fun FormLogin(navController: NavController) {
             fontWeight = FontWeight.SemiBold
         )
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = password,
+            onValueChange = { password = it },
             modifier = Modifier
                 .fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
@@ -232,10 +252,19 @@ fun FormLogin(navController: NavController) {
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
-                navController
-                    .navigate(
-                        Destination.InventoryScreen.route
-                    )
+                scope.launch(Dispatchers.IO) {
+                    try {
+                        userRepository.login(email = email, password = password)
+                        withContext(Dispatchers.Main) {
+                            navController.navigate(Destination.InventoryScreen.route)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, "Erro ao criar usuário!", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
