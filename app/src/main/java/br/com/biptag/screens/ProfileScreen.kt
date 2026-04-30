@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,6 +40,7 @@ import br.com.biptag.R
 import br.com.biptag.components.BottomBar
 import br.com.biptag.components.TopBar
 import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.SharedPreferencesUserRepository
 import br.com.biptag.ui.theme.BipTagTheme
 
 @Composable
@@ -66,6 +68,11 @@ data class BottomNavigationItem(
 
 @Composable
 fun ProfileContentScreen(modifier: Modifier = Modifier, navController: NavController) {
+
+    val userShared = SharedPreferencesUserRepository(LocalContext.current)
+
+    val user = userShared.getUser()
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -94,11 +101,11 @@ fun ProfileContentScreen(modifier: Modifier = Modifier, navController: NavContro
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Maria Silva",
+            text = user.name,
             style = MaterialTheme.typography.titleMedium,
         )
         Text(
-            text = "maria@email.com",
+            text = user.email,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -116,7 +123,7 @@ fun ProfileContentScreen(modifier: Modifier = Modifier, navController: NavContro
 
             ProfileCardItem(
                 label = stringResource(R.string.phone),
-                value = "(11) 99999-9999",
+                value = user.phoneNumber,
                 modifier = Modifier.clickable{}
             )
 
@@ -127,7 +134,7 @@ fun ProfileContentScreen(modifier: Modifier = Modifier, navController: NavContro
                 value = "Ativadas",
                 modifier = Modifier.clickable{},
                 trailingContent = {
-                    Switch( modifier = Modifier.padding(0.dp), checked = true, onCheckedChange = {})
+                    Switch( modifier = Modifier.padding(0.dp), checked = user.notifications, onCheckedChange = {})
                 }
             )
 

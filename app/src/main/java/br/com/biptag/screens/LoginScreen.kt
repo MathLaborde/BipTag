@@ -50,6 +50,7 @@ import androidx.navigation.compose.rememberNavController
 import br.com.biptag.model.User
 import br.com.biptag.navigation.Destination
 import br.com.biptag.repository.RoomUserRepository
+import br.com.biptag.repository.SharedPreferencesUserRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -254,14 +255,27 @@ fun FormLogin(navController: NavController) {
             onClick = {
                 scope.launch(Dispatchers.IO) {
                     try {
-                        userRepository.login(email = email, password = password)
+                        val user = userRepository.login(email = email, password = password)
+                        val userShared = SharedPreferencesUserRepository(context)
+
+                        if (user == null) {
+                            error("Usuário ou senha inválidos")
+                        }
+
                         withContext(Dispatchers.Main) {
+                            userShared.saveUser(
+                                name = user.name,
+                                email = user.email,
+                                phoneNumber = user.phoneNumber,
+                                notifications = user.notifications.toString()
+
+                            )
                             navController.navigate(Destination.InventoryScreen.route)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "Erro ao criar usuário!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
