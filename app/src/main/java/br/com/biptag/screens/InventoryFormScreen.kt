@@ -201,17 +201,9 @@ fun ContentInventoryFormScreen(modifier: Modifier) {
                     value = category,
                     onValueChange = { category = it },
                     singleLine = true,
-                    placeholder = { Text("Selecione...", color = Color.LightGray) },
+                    placeholder = { Text("Ex.: Eletrônicos...", color = Color.LightGray) },
                     leadingIcon = {
                         Icon(Icons.Outlined.Category, contentDescription = null, tint = Color.Gray)
-                    },
-                    trailingIcon = {
-                        // Setinha para simular que é um menu de seleção
-                        Icon(
-                            Icons.Default.KeyboardArrowDown,
-                            contentDescription = null,
-                            tint = Color.Gray
-                        )
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
@@ -262,7 +254,7 @@ fun UserImage(
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(160.dp)
+            .height(300.dp)
             .padding(8.dp)
     ) {
         Box(

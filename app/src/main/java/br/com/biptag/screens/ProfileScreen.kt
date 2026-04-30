@@ -116,7 +116,8 @@ fun ProfileContentScreen(modifier: Modifier = Modifier, navController: NavContro
 
             ProfileCardItem(
                 label = stringResource(R.string.phone),
-                value = "(11) 99999-9999"
+                value = "(11) 99999-9999",
+                modifier = Modifier.clickable{}
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -124,6 +125,7 @@ fun ProfileContentScreen(modifier: Modifier = Modifier, navController: NavContro
             ProfileCardItem(
                 label = stringResource(R.string.notifications),
                 value = "Ativadas",
+                modifier = Modifier.clickable{},
                 trailingContent = {
                     Switch( modifier = Modifier.padding(0.dp), checked = true, onCheckedChange = {})
                 }
@@ -132,6 +134,11 @@ fun ProfileContentScreen(modifier: Modifier = Modifier, navController: NavContro
             Spacer(modifier = Modifier.height(32.dp))
 
             ProfileCardItem(
+                modifier = Modifier.clickable{
+                    navController.navigate(
+                        Destination.CreditsScreen.route
+                    )
+                },
                 label = stringResource(R.string.app_credits),
                 trailingContent = {
                     Icon(
@@ -139,11 +146,6 @@ fun ProfileContentScreen(modifier: Modifier = Modifier, navController: NavContro
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
-                            .clickable{
-                                navController.navigate(
-                                    Destination.CreditsScreen.route
-                                )
-                            }
                     )
                 }
             )
@@ -170,12 +172,13 @@ fun ProfileContentScreen(modifier: Modifier = Modifier, navController: NavContro
 
 @Composable
 fun ProfileCardItem(
+    modifier: Modifier,
     label: String,
     value: String? = null,
     trailingContent: @Composable (() -> Unit)? = null
 ) {
     OutlinedCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {

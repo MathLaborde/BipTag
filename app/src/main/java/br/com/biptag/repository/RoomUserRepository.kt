@@ -1,14 +1,18 @@
 package br.com.biptag.repository
 
+import android.content.Context
+import br.com.biptag.dao.BipTagDatabase
 import br.com.biptag.model.User
 
-class RoomUserRepository: RepositoryInterface<User>{
+class RoomUserRepository(context: Context): RepositoryInterface<User>{
+    private val bipTagDatabase= BipTagDatabase.getInstance(context).userDao()
+
     override fun save(entity: User) {
-        TODO("Not yet implemented")
+        bipTagDatabase.save(entity)
     }
 
     override fun getById(id: Int): User {
-        TODO("Not yet implemented")
+        return bipTagDatabase.getById(id)
     }
 
     override fun update(entity: User): Int {
@@ -17,5 +21,9 @@ class RoomUserRepository: RepositoryInterface<User>{
 
     override fun delete(entity: User): Int {
         TODO("Not yet implemented")
+    }
+
+    fun login(email: String, password: String): User? {
+        return bipTagDatabase.login(email, password)
     }
 }

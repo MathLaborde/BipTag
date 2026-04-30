@@ -1,11 +1,10 @@
 package br.com.biptag.screens
 
-import android.graphics.fonts.FontFamily
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +15,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.PersonOutline
@@ -26,7 +25,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -34,25 +32,35 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import br.com.biptag.model.User
 import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.RoomUserRepository
 import br.com.biptag.ui.theme.BipTagTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun SignUpScreen(navController: NavController) {
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -61,14 +69,13 @@ fun SignUpScreen(navController: NavController) {
     ) {
         Scaffold(
             topBar = { MyTopAppBar(navController) },
-            bottomBar = {BottomButtons(navController = navController)}
-        ) { paddingValues -> paddingValues
+        ) { paddingValues ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                FormSignUp()
+                FormSignUp(navController)
             }
         }
     }
@@ -94,7 +101,7 @@ fun MyTopAppBar(navController: NavController) {
             },
             navigationIcon = {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Arrow Back Icon",
                     modifier = Modifier
                         .padding(start = 8.dp, end = 8.dp)
@@ -120,239 +127,283 @@ private fun MyTopAppBarPreview() {
 }
 
 @Composable
-fun FormSignUp() {
+fun FormSignUp(navController: NavController) {
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var notifications by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val userRepository = remember { RoomUserRepository(context) }
+
     Column(
         modifier = Modifier
-            .padding(16.dp)
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(
-            text = "Nome Completo",
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 4.dp),
-            fontSize = 14.sp
-        )
-        OutlinedTextField(
-            value = "",
-            onValueChange = {},
+        Column(
             modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults
-                .colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedContainerColor = Color.White,
-
-                    unfocusedBorderColor = Color.LightGray,
-                    focusedBorderColor = Color.Gray,
-
-                    // 3. Cor do Texto digitado
-                    unfocusedTextColor = Color.Gray,
-                    focusedTextColor = Color.DarkGray
-                ),
-            placeholder = {
-                Text(
-                    text = "Ex.: Maria Silva",
-                    color = Color.Gray,
-                    fontSize = 15.sp
-                )
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.PersonOutline,
-                    contentDescription = "Person Icon",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(26.dp)
-                )
-            }
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "Email",
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 4.dp),
-            fontSize = 14.sp
-        )
-        OutlinedTextField(
-            value = "",
-            onValueChange = {},
-            modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults
-                .colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedContainerColor = Color.White,
-
-                    unfocusedBorderColor = Color.LightGray,
-                    focusedBorderColor = Color.Gray,
-
-                    // 3. Cor do Texto digitado
-                    unfocusedTextColor = Color.Gray,
-                    focusedTextColor = Color.DarkGray
-                ),
-            placeholder = {
-                Text(
-                    text = "seu@gmail.com.br",
-                    color = Color.Gray,
-                    fontSize = 15.sp
-                )
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.MailOutline,
-                    contentDescription = "Mail Outline Icon",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(26.dp)
-                )
-            }
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "Telefone",
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 4.dp),
-            fontSize = 14.sp
-        )
-        OutlinedTextField(
-            value = "",
-            onValueChange = {},
-            modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults
-                .colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedContainerColor = Color.White,
-
-                    unfocusedBorderColor = Color.LightGray,
-                    focusedBorderColor = Color.Gray,
-
-                    // 3. Cor do Texto digitado
-                    unfocusedTextColor = Color.Gray,
-                    focusedTextColor = Color.DarkGray
-                ),
-            placeholder = {
-                Text(
-                    text = "(11) 99999-9999",
-                    color = Color.Gray,
-                    fontSize = 15.sp
-                )
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Phone,
-                    contentDescription = "Phone Icon",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(26.dp)
-                )
-            }
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "Senha",
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 4.dp),
-            fontSize = 14.sp
-        )
-        OutlinedTextField(
-            value = "",
-            onValueChange = {},
-            modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults
-                .colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedContainerColor = Color.White,
-
-                    unfocusedBorderColor = Color.LightGray,
-                    focusedBorderColor = Color.Gray,
-
-                    // 3. Cor do Texto digitado
-                    unfocusedTextColor = Color.Gray,
-                    focusedTextColor = Color.DarkGray
-                ),
-            placeholder = {
-                Text(
-                    text = "••••••••",
-                    color = Color.Gray,
-                    fontSize = 20.sp
-                )
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = "Lock Icon",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "Confirmar senha",
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 4.dp),
-            fontSize = 14.sp
-        )
-        OutlinedTextField(
-            value = "",
-            onValueChange = {},
-            modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults
-                .colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedContainerColor = Color.White,
-
-                    unfocusedBorderColor = Color.LightGray,
-                    focusedBorderColor = Color.Gray,
-
-                    // 3. Cor do Texto digitado
-                    unfocusedTextColor = Color.Gray,
-                    focusedTextColor = Color.DarkGray
-                ),
-            placeholder = {
-                Text(
-                    text = "••••••••",
-                    color = Color.Gray,
-                    fontSize = 20.sp
-                )
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = "Lock Icon",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp)
         ) {
             Text(
-                text = "Receber notificações",
-                color = Color.DarkGray,
+                text = "Nome Completo",
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 4.dp),
                 fontSize = 14.sp
             )
-            Switch(
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
                 modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .scale(0.9f),
-                checked = true,
-                onCheckedChange = {},
-                colors = SwitchDefaults
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults
                     .colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = Color(0xFF2C2C2C)
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White,
+
+                        unfocusedBorderColor = Color.LightGray,
+                        focusedBorderColor = Color.Gray,
+
+                        // 3. Cor do Texto digitado
+                        unfocusedTextColor = Color.Gray,
+                        focusedTextColor = Color.DarkGray
+                    ),
+                placeholder = {
+                    Text(
+                        text = "Ex.: Maria Silva",
+                        color = Color.Gray,
+                        fontSize = 15.sp
                     )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.PersonOutline,
+                        contentDescription = "Person Icon",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
             )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Email",
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 4.dp),
+                fontSize = 14.sp
+            )
+            OutlinedTextField(
+                value = email,
+                onValueChange = {email = it},
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults
+                    .colors(
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White,
+
+                        unfocusedBorderColor = Color.LightGray,
+                        focusedBorderColor = Color.Gray,
+
+                        // 3. Cor do Texto digitado
+                        unfocusedTextColor = Color.Gray,
+                        focusedTextColor = Color.DarkGray
+                    ),
+                placeholder = {
+                    Text(
+                        text = "seu@gmail.com.br",
+                        color = Color.Gray,
+                        fontSize = 15.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.MailOutline,
+                        contentDescription = "Mail Outline Icon",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Telefone",
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 4.dp),
+                fontSize = 14.sp
+            )
+            OutlinedTextField(
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults
+                    .colors(
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White,
+
+                        unfocusedBorderColor = Color.LightGray,
+                        focusedBorderColor = Color.Gray,
+
+                        // 3. Cor do Texto digitado
+                        unfocusedTextColor = Color.Gray,
+                        focusedTextColor = Color.DarkGray
+                    ),
+                placeholder = {
+                    Text(
+                        text = "(11) 99999-9999",
+                        color = Color.Gray,
+                        fontSize = 15.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Phone,
+                        contentDescription = "Phone Icon",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Senha",
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 4.dp),
+                fontSize = 14.sp
+            )
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults
+                    .colors(
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White,
+
+                        unfocusedBorderColor = Color.LightGray,
+                        focusedBorderColor = Color.Gray,
+
+                        // 3. Cor do Texto digitado
+                        unfocusedTextColor = Color.Gray,
+                        focusedTextColor = Color.DarkGray
+                    ),
+                placeholder = {
+                    Text(
+                        text = "••••••••",
+                        color = Color.Gray,
+                        fontSize = 20.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Lock Icon",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Confirmar senha",
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 4.dp),
+                fontSize = 14.sp
+            )
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults
+                    .colors(
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White,
+
+                        unfocusedBorderColor = Color.LightGray,
+                        focusedBorderColor = Color.Gray,
+
+                        // 3. Cor do Texto digitado
+                        unfocusedTextColor = Color.Gray,
+                        focusedTextColor = Color.DarkGray
+                    ),
+                placeholder = {
+                    Text(
+                        text = "••••••••",
+                        color = Color.Gray,
+                        fontSize = 20.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Lock Icon",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Receber notificações",
+                    color = Color.DarkGray,
+                    fontSize = 14.sp
+                )
+                Switch(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .scale(0.9f),
+                    checked = notifications,
+                    onCheckedChange = { notifications = it },
+                    colors = SwitchDefaults
+                        .colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = Color(0xFF2C2C2C)
+                        )
+                )
+            }
         }
+
+        BottomButtons(navController = navController, onClick = {
+
+            val user = User(
+                name = name,
+                email = email,
+                phoneNumber = phoneNumber,
+                password = password,
+                notifications = notifications
+            )
+
+            scope.launch(Dispatchers.IO) {
+                try {
+                    userRepository.save(user)
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Usuário criado com sucesso!", Toast.LENGTH_SHORT).show()
+                        navController.navigate(Destination.LoginScreen.route)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Erro ao criar usuário!", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
     }
 }
 
@@ -360,23 +411,19 @@ fun FormSignUp() {
 @Composable
 private fun FormSignUpPreview() {
     BipTagTheme() {
-        FormSignUp()
+        FormSignUp(navController = rememberNavController())
     }
 }
 
 @Composable
-fun BottomButtons(navController: NavController) {
+fun BottomButtons(navController: NavController, onClick : () -> Unit) {
+
     Column(
         modifier = Modifier
             .padding(horizontal = 16.dp)
     ) {
         Button(
-            onClick = {
-                navController
-                    .navigate(
-                        Destination.LoginScreen.route
-                    )
-            },
+            onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(55.dp),
@@ -426,6 +473,6 @@ fun BottomButtons(navController: NavController) {
 @Composable
 private fun BottomButtonsPreview() {
     BipTagTheme() {
-        BottomButtons(navController = rememberNavController())
+        BottomButtons(navController = rememberNavController(), onClick = {})
     }
 }

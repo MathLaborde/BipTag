@@ -1,19 +1,28 @@
 package br.com.biptag.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import br.com.biptag.model.User
 
 @Dao
 interface UserDao {
 
-    // O Room agora tem uma instrução para gerar o código!
     @Insert
-    fun salvarUsuario(usuario: User) // Substitua 'User' pelo nome da sua classe
+    fun save(user: User)
 
-    // Exemplo de uma função de busca
-    @Query("SELECT * FROM tb_user") // Substitua pelo nome da sua tabela
-    fun buscarTodosUsuarios(): List<User>
+    @Delete
+    fun delete(user: User): Int
+
+    @Update
+    fun update(user: User): Int
+
+    @Query("SELECT * FROM tb_user WHERE id = :id LIMIT 1")
+    fun getById(id: Int): User
+
+    @Query("SELECT * FROM tb_user WHERE email = :email AND password = :password LIMIT 1")
+    fun login(email: String, password: String): User?
 
 }
