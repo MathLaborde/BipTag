@@ -41,7 +41,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,15 +57,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.biptag.R
 import br.com.biptag.components.TopBar
+import br.com.biptag.factory.RetrofitClient
 import br.com.biptag.model.Inventory
 import br.com.biptag.navigation.Destination
-import br.com.biptag.repository.RoomInventoryRepository
 import br.com.biptag.repository.SharedPreferencesUserRepository
 import br.com.biptag.ui.theme.BipTagTheme
-import br.com.fiap.recipes.utils.convertBitmapToByteArray
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @Composable
 fun InventoryFormScreen(navController: NavController) {
@@ -90,10 +88,9 @@ fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController)
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
+    var isSaving by remember { mutableStateOf(false) } // Controle para não clicar 2x no botão
 
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val inventoryRepository = remember { RoomInventoryRepository(context) }
 
     var itemImage by remember {
         mutableStateOf<Bitmap?>(null)
@@ -104,13 +101,7 @@ fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController)
     ) { uri ->
         if (uri != null) {
             if (Build.VERSION.SDK_INT < 28) {
-                itemImage = MediaStore
-                    .Images
-                    .Media
-                    .getBitmap(
-                        context.contentResolver,
-                        uri
-                    )
+                itemImage = MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
             } else {
                 val source = ImageDecoder.createSource(context.contentResolver, uri)
                 itemImage = ImageDecoder.decodeBitmap(source)
@@ -125,8 +116,7 @@ fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController)
         verticalArrangement = Arrangement.SpaceBetween
     ){
         Column(
-            modifier = Modifier
-                .padding(vertical = 6.dp)
+            modifier = Modifier.padding(vertical = 6.dp)
         ) {
             UserImage(
                 profileImage = itemImage,
@@ -154,8 +144,7 @@ fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController)
                 )
             )
             Column(
-                modifier = Modifier
-                    .padding(vertical = 6.dp)
+                modifier = Modifier.padding(vertical = 6.dp)
             ) {
                 Text(
                     text = "Descrição",
@@ -175,14 +164,13 @@ fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController)
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(100.dp), // Aumentamos a altura para simular uma caixa de texto grande
+                        .height(100.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = Color.LightGray)
                 )
             }
             Column(
-                modifier = Modifier
-                    .padding(vertical = 6.dp)
+                modifier = Modifier.padding(vertical = 6.dp)
             ) {
                 Text(
                     text = "Categoria",
@@ -205,42 +193,57 @@ fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController)
                 )
             }
         }
+
         Button(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
+            enabled = !isSaving, // Desabilita enquanto salva
             onClick = {
+                isSaving = true
                 val userShared = SharedPreferencesUserRepository(context)
 
-                // Configurar depois o userId
+                // Cria o objeto sem passar o 'id' (a API cria automático) e usando 'image = null'
                 val inventory = Inventory(
                     name = name,
                     description = description,
                     category = category,
-                    userId = userShared.getUser().id,
-                    image = itemImage?.let { convertBitmapToByteArray(it) }
+                    userId = "00000000-0000-0000-0000-000000000000",
+                    image = null // Supabase exige URL em String. Faremos upload da imagem em outro passo.
                 )
 
-                scope.launch(Dispatchers.IO) {
-                    try {
-                        inventoryRepository.save(inventory)
+                val apiKey = "sb_publishable_-uStjsesRzkPg7vwDmha9g_F17ohYyw"
+                val token = "Bearer ${apiKey}"
 
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "Usuário criado com sucesso!", Toast.LENGTH_SHORT).show()
-                            navController.navigate(Destination.InventoryScreen.route)
+                // Chamada da API com Retrofit
+                RetrofitClient.getInventoryService().insertInventory(apiKey, token, inventory)
+                    .enqueue(object : Callback<List<Inventory>> {
+                        override fun onResponse(
+                            call: Call<List<Inventory>>,
+                            response: Response<List<Inventory>>
+                        ) {
+                            isSaving = false
+                            if (response.isSuccessful) {
+                                Toast.makeText(context, "Item criado com sucesso!", Toast.LENGTH_SHORT).show()
+                                navController.navigate(Destination.InventoryScreen.route) {
+                                    popUpTo(Destination.InventoryFormScreen.route) { inclusive = true }
+                                }
+                            } else {
+                                Toast.makeText(context, "Erro: ${response.code()}", Toast.LENGTH_SHORT).show()
+                            }
                         }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+
+                        override fun onFailure(call: Call<List<Inventory>>, t: Throwable) {
+                            isSaving = false
+                            t.printStackTrace()
+                            Toast.makeText(context, "Falha de conexão", Toast.LENGTH_SHORT).show()
                         }
-                    }
-                }
+                    })
             },
             shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text(stringResource(R.string.save))
+            Text(if (isSaving) "Salvando..." else stringResource(R.string.save), color = Color.White)
         }
     }
 }
@@ -255,7 +258,7 @@ fun UserImage(
         colors = CardDefaults
             .cardColors(
                 containerColor = MaterialTheme.colorScheme.outlineVariant
-        ),
+            ),
         modifier = Modifier
             .fillMaxWidth()
             .height(300.dp)
@@ -273,8 +276,7 @@ fun UserImage(
                 Image(
                     bitmap = profileImage.asImageBitmap(),
                     contentDescription = "",
-                    modifier = Modifier
-                        .fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
             } else {

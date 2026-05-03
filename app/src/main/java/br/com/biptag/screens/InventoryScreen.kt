@@ -2,8 +2,6 @@ package br.com.biptag.screens
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
-import android.graphics.Bitmap
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -31,7 +29,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,8 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -52,12 +47,14 @@ import androidx.navigation.compose.rememberNavController
 import br.com.biptag.R
 import br.com.biptag.components.BottomBar
 import br.com.biptag.components.TopBar
+import br.com.biptag.factory.RetrofitClient
 import br.com.biptag.model.Inventory
 import br.com.biptag.navigation.Destination
-import br.com.biptag.repository.RoomInventoryRepository
 import br.com.biptag.repository.SharedPreferencesUserRepository
 import br.com.biptag.ui.theme.BipTagTheme
-import br.com.fiap.recipes.utils.convertByteArrayToBitmap
+import coil.compose.AsyncImage
+import br.com.biptag.repository.getAllInventories
+
 
 @Composable
 fun InventoryScreen(navController: NavController) {
@@ -95,11 +92,9 @@ fun InventoryScreen(navController: NavController) {
 @Composable
 fun ContentInventoryScreen(modifier: Modifier) {
     val context = LocalContext.current
-    val inventoryRepository = remember { RoomInventoryRepository(context) }
     val userShared = SharedPreferencesUserRepository(context)
 
-    // Observa o Flow do banco de dados em tempo real
-    val items by inventoryRepository.getAllByUser(userShared.getUser().id).collectAsState(initial = emptyList())
+    val items = getAllInventories()
 
     Column(
         modifier = modifier.padding(horizontal = 16.dp)
@@ -129,6 +124,8 @@ fun ContentInventoryScreen(modifier: Modifier) {
 fun InventoryItem(item: Inventory) {
     val context = LocalContext.current
 
+    val baseUrl = RetrofitClient.BASE_URL.plus("itens")
+
     // Lógica de cores baseada no BipTagTheme
     val statusColor = when (item.status) {
         "Created", "Criado" -> MaterialTheme.colorScheme.tertiary // Cinza claro
@@ -144,13 +141,7 @@ fun InventoryItem(item: Inventory) {
         else -> MaterialTheme.colorScheme.onBackground
     }
 
-    val itemImage: Bitmap = remember(item.image) {
-        if (item.image != null) {
-            convertByteArrayToBitmap(item.image)
-        } else {
-            android.graphics.BitmapFactory.decodeResource(context.resources, R.drawable.no_image)
-        }
-    }
+    //
 
     Card(
         modifier = Modifier
@@ -171,8 +162,8 @@ fun InventoryItem(item: Inventory) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Imagem com shape clip atualizado
-            Image(
-                bitmap = itemImage.asImageBitmap(),
+            AsyncImage(
+                model = baseUrl.plus(item.image),
                 contentDescription = null,
                 modifier = Modifier
                     .size(56.dp)
@@ -214,6 +205,23 @@ fun InventoryItem(item: Inventory) {
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun InventoryItemPreview() {
+    BipTagTheme() {
+
+        val mockItem = Inventory(
+            id = 1,
+            name = "Notebook Dell",
+            description = "I7 16GB RAM",
+            category = "Eletrônicos",
+            status = "Verificado"
+        )
+
+        InventoryItem(item = mockItem)
     }
 }
 

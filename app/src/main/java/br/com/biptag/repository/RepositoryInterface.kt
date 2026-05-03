@@ -1,10 +1,9 @@
 package br.com.biptag.repository
 
-import br.com.biptag.model.User
-
-interface RepositoryInterface<T>{
-    fun save(entity: T)
-    fun getById(id: Int = 0): T
-    fun update(entity: T): Int
-    fun delete(entity: T): Int
+interface RepositoryInterface<T> {
+    suspend fun save(entity: T)
+    suspend fun getAll(): List<T>
+    suspend fun getById(id: Int = 0): T?
+    suspend fun update(entity: T): Int
+    suspend fun delete(entity: T): Int
 }

@@ -8,10 +8,10 @@ import androidx.room.TypeConverters
 import br.com.biptag.model.Inventory
 import br.com.biptag.model.User
 
-@Database(entities = [User::class, Inventory::class], version = 1)
+@Database(entities = [User::class], version = 1)
 abstract class BipTagDatabase: RoomDatabase() {
     abstract fun userDao(): UserDao
-    abstract fun inventoryDao(): InventoryDao
+    //abstract fun inventoryDao(): InventoryDao
 
     companion object {
         private lateinit var instance: BipTagDatabase

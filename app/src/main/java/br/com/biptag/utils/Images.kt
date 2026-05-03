@@ -1,4 +1,4 @@
-package br.com.fiap.recipes.utils
+package br.com.biptag.utils
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory

@@ -7,19 +7,23 @@ import br.com.biptag.model.User
 class RoomUserRepository(context: Context): RepositoryInterface<User>{
     private val bipTagDatabase= BipTagDatabase.getInstance(context).userDao()
 
-    override fun save(entity: User) {
+    override suspend fun save(entity: User) {
         bipTagDatabase.save(entity)
     }
 
-    override fun getById(id: Int): User {
-        return bipTagDatabase.getById(id)
-    }
-
-    override fun update(entity: User): Int {
+    override suspend fun getAll(): List<User> {
         TODO("Not yet implemented")
     }
 
-    override fun delete(entity: User): Int {
+    override suspend fun getById(id: Int): User {
+        return bipTagDatabase.getById(id)
+    }
+
+    override suspend fun update(entity: User): Int {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun delete(entity: User): Int {
         TODO("Not yet implemented")
     }
 
