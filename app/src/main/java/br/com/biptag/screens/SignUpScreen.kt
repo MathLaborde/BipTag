@@ -52,15 +52,21 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.biptag.model.User
 import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.AuthRepository
 import br.com.biptag.repository.RoomUserRepository
+import br.com.biptag.supabase.SupabaseClient
 import br.com.biptag.ui.theme.BipTagTheme
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import okhttp3.Dispatcher
 
 @Composable
 fun SignUpScreen(navController: NavController) {
-
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -381,6 +387,11 @@ fun FormSignUp(navController: NavController) {
 
         BottomButtons(navController = navController, onClick = {
 
+            if (password != confirmPassword) {
+                Toast.makeText(context, "As senhas não coincidem", Toast.LENGTH_SHORT).show()
+                return@BottomButtons
+            }
+
             val user = User(
                 name = name,
                 email = email,
@@ -389,17 +400,30 @@ fun FormSignUp(navController: NavController) {
                 notifications = notifications
             )
 
-            scope.launch(Dispatchers.IO) {
+            scope.launch {
                 try {
-                    userRepository.save(user)
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Usuário criado com sucesso!", Toast.LENGTH_SHORT).show()
-                        navController.navigate(Destination.LoginScreen.route)
+
+                    val auth = AuthRepository()
+
+                    auth.signUp(user)
+
+                    if (auth.isLoggedIn()) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, "Cadastro Realizado com sucesso!", Toast.LENGTH_LONG).show()
+                            navController.navigate(Destination.InventoryScreen.route)
+                        }
+                    } else {
+                        withContext(Dispatchers.Main){
+                            Toast.makeText(context, "Erro ao realizar cadastro.", Toast.LENGTH_LONG).show()
+                        }
                     }
+
+
                 } catch (e: Exception) {
+                    println("Supabase Erro Detalhado: ${e.message}")
                     e.printStackTrace()
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Erro ao criar usuário!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Erro: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

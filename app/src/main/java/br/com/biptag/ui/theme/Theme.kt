@@ -21,6 +21,8 @@ private val DarkColorScheme = darkColorScheme(
     onTertiary = DarkOnTertiary,
     onBackground = DarkOnBackground,
     onSurface = DarkOnSurface,
+    outline = DarkOutline,
+    onSurfaceVariant = DarkOnSurfaceVariant
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -34,6 +36,8 @@ private val LightColorScheme = lightColorScheme(
     onTertiary = LightOnTertiary,
     onBackground = LightOnBackground,
     onSurface = LightOnSurface,
+    outline = LightOutline,
+    onSurfaceVariant = LightOnSurfaceVariant
 )
 
 @Composable
@@ -54,7 +58,7 @@ fun BipTagTheme( // Renomeado para o seu app!
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = createTypography(colorScheme),
         content = content
     )
 }

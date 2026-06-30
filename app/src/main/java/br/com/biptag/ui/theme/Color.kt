@@ -1,18 +1,18 @@
 package br.com.biptag.ui.theme
 
+import android.hardware.lights.Light
 import androidx.compose.ui.graphics.Color
-
 
 // CORES DO TEMA CLARO
 
 // A cor principal (Botões "Entrar", "Salvar", Initial Screen)
-val LightPrimary = Color(0xFF2A2A2A)
+val LightPrimary = Color(0XFF253E4C)
 
 // Cor secundária (Textos de apoio, ícones não selecionados)
-val LightSecondary = Color(0xFF707070)
+val LightSecondary = Color(0xFFE8F2F7)
 
 // Cor de fundo padrão das telas
-val LightBackground = Color(0xFFFFFFFF) // Branco puro
+val LightBackground = Color(0xFFF6F8FA)
 
 // Cor de fundo de elementos sobrepostos (Cards, BottomBar, TopBar)
 val LightSurface = Color(0xFFFFFFFF)
@@ -21,18 +21,22 @@ val LightSurface = Color(0xFFFFFFFF)
 val LightOnPrimary = Color(0xFFFFFFFF)
 
 // Cor do texto/ícone que vai em cima da cor Secondary
-val LightOnSecondary = Color(0xFFFFFFFF)
+val LightOnSecondary = LightPrimary
 
 // Cor principal dos textos gerais na tela branca
-val LightOnBackground = Color(0xFF1A1A1A) // Quase preto para leitura confortável
+val LightOnBackground = LightPrimary // Primary
 
 // Cor dos textos em cima de Cards/Surfaces
 val LightOnSurface = Color(0xFF1A1A1A)
 
-// Cor para bordas, divisórias (HorizontalDivider) e placeholders de input
-val LightTertiary = Color(0xFFB6B6B6)
+val LightTertiary = Color(0xFFFFE16D)
 val LightOnTertiary = Color(0xFFFFFFFF)
 
+// Cor para bordas, divisórias (HorizontalDivider) e placeholders de input
+
+val LightOutline = Color(0xFFE3E9ED)
+
+val LightOnSurfaceVariant = Color(0xFF94A3AD)
 
 // CORES DO TEMA ESCURO (Dark Mode para o BipTag)
 
@@ -46,3 +50,7 @@ val DarkOnBackground = Color(0xFFFFFFFF) // Textos principais ficam brancos
 val DarkOnSurface = Color(0xFFFFFFFF)
 val DarkTertiary = Color(0xFF404040) // Bordas e divisórias ficam cinza escuro
 val DarkOnTertiary = Color(0xFFFFFFFF)
+
+val DarkOutline = Color(0xFFE3E9ED)
+
+val DarkOnSurfaceVariant = Color(0xFF94A3AD)

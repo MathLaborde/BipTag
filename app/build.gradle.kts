@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -72,4 +73,15 @@ dependencies {
 
     // Coil dependence
     implementation("io.coil-kt:coil-compose:2.7.0")
+
+    // SDK do Supabase
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.postgrest)
+    implementation(libs.supabase.auth)
+    implementation(libs.supabase.compose.auth)
+
+    // Motor HTTP Ktor (Necessário para o Supabase)
+    implementation(libs.ktor.client.android)
+    implementation(libs.slf4j.android)
+    implementation(libs.ktor.client.content.negotiation)
 }
