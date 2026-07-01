@@ -2,6 +2,7 @@ package br.com.biptag.components
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
@@ -32,10 +33,11 @@ fun BottomBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    // Modifique aqui apra adicionar novos menus
     val items = listOf(
         BottomNavigationItem(
             "Inventário",
-            icon = Icons.Outlined.Inventory2,
+            icon = Icons.Default.GridView,
             route = Destination.InventoryScreen.route
         ),
         BottomNavigationItem(
@@ -45,7 +47,7 @@ fun BottomBar(navController: NavController) {
         )
     )
 
-    val lineColor = MaterialTheme.colorScheme.tertiary
+    val lineColor = MaterialTheme.colorScheme.outline
 
     NavigationBar(
         modifier = Modifier
@@ -65,6 +67,7 @@ fun BottomBar(navController: NavController) {
             val isSelected = currentRoute == item.route
 
             NavigationBarItem(
+                modifier = Modifier.size(72.dp),
                 selected = isSelected,
                 onClick = {
                     navController.navigate(item.route) {
@@ -79,21 +82,31 @@ fun BottomBar(navController: NavController) {
                     Icon(
                         imageVector = item.icon,
                         contentDescription = item.title,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(26.dp),
+                        tint = if (isSelected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
                     )
                 },
                 label = {
                     Text(
                         text = item.title,
-                        style = MaterialTheme.typography.labelSmall, // Fonte no tamanho correto!
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isSelected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
                     selectedTextColor = MaterialTheme.colorScheme.primary,
 
-                    unselectedIconColor = MaterialTheme.colorScheme.secondary,
-                    unselectedTextColor = MaterialTheme.colorScheme.secondary,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
 
                     indicatorColor = Color.Transparent
                 )

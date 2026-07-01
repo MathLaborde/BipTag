@@ -44,6 +44,16 @@ fun createTypography(colorScheme: ColorScheme) = Typography(
         color = colorScheme.onBackground
     ),
 
+    displaySmall = TextStyle(
+        fontFamily = interFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
+        letterSpacing = 0.sp,
+        color = colorScheme.onBackground
+    ),
+
+
     // Títulos de telas (ex: "Novo item", "Inventário" na TopBar)
     titleLarge = TextStyle(
         fontFamily = interFamily,
