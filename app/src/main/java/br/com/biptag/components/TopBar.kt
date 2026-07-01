@@ -1,6 +1,7 @@
 package br.com.biptag.components
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +40,9 @@ fun TopBar(
 ) {
     Column() {
         TopAppBar(
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background
+            ),
             title = {
                 Row(
                     modifier = Modifier
@@ -48,26 +53,28 @@ fun TopBar(
                 ) {
                     Text(
                         text = title,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp
+                        style = MaterialTheme.typography.displayMedium,
                     )
                     if (endIcon != null) {
                         Icon(
                             imageVector = endIcon,
                             contentDescription = null,
                             modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.secondary
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
             },
             navigationIcon = {
                 if (startIcon != null) {
-                    IconButton(onClick = {onClick()}) {
+                    IconButton(
+                        onClick = { onClick() }
+                    ) {
                         Icon(
                             imageVector = startIcon,
                             contentDescription = "",
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
@@ -75,7 +82,7 @@ fun TopBar(
         )
         HorizontalDivider(
             thickness = 0.5.dp,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.outline
         )
     }
 }
