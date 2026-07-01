@@ -21,23 +21,42 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.biptag.R
 import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.AuthRepository
 import br.com.biptag.ui.theme.BipTagTheme
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 
 @Composable
 fun InitialScreen(navController: NavController) {
     val progressTarget = remember { mutableFloatStateOf(0f) }
 
+    val authRepository = remember { AuthRepository() }
+
     val animatedProgress by animateFloatAsState(
         targetValue = progressTarget.floatValue,
-        animationSpec = tween(durationMillis = 3000, easing = LinearEasing),
+        animationSpec = tween(durationMillis = 2000, easing = LinearEasing),
         label = "progress"
     )
 
     LaunchedEffect(Unit) {
         progressTarget.floatValue = 1f
-        delay(3000)
-        navController.navigate(Destination.LoginScreen.route) {
+
+        val isLoggedIn = coroutineScope {
+            val checkTask = async { authRepository.isLoggedIn() }
+            val timerTask = async { delay(2000) }
+
+            timerTask.await()
+            checkTask.await()
+        }
+
+        val destination = if (isLoggedIn) {
+            Destination.InventoryScreen.route
+        } else {
+            Destination.LoginScreen.route
+        }
+
+        navController.navigate(destination) {
             popUpTo(Destination.InitialScreen.route) { inclusive = true }
         }
     }

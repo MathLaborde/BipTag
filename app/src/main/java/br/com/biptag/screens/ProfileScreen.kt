@@ -18,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -30,7 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,7 +38,7 @@ import br.com.biptag.R
 import br.com.biptag.components.BottomBar
 import br.com.biptag.components.TopBar
 import br.com.biptag.navigation.Destination
-import br.com.biptag.repository.SharedPreferencesUserRepository
+import br.com.biptag.repository.AuthRepository
 import br.com.biptag.ui.theme.BipTagTheme
 
 @Composable
@@ -69,9 +67,9 @@ data class BottomNavigationItem(
 @Composable
 fun ProfileContentScreen(modifier: Modifier = Modifier, navController: NavController) {
 
-    val userShared = SharedPreferencesUserRepository(LocalContext.current)
+    val authRepository = AuthRepository()
 
-    val user = userShared.getUser()
+    val user = authRepository.getCurrentUser() ?: return
 
     Column(
         modifier = modifier

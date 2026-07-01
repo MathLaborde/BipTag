@@ -60,7 +60,6 @@ import br.com.biptag.components.TopBar
 import br.com.biptag.factory.RetrofitClient
 import br.com.biptag.model.Inventory
 import br.com.biptag.navigation.Destination
-import br.com.biptag.repository.SharedPreferencesUserRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import retrofit2.Call
 import retrofit2.Callback
@@ -201,7 +200,6 @@ fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController)
             enabled = !isSaving, // Desabilita enquanto salva
             onClick = {
                 isSaving = true
-                val userShared = SharedPreferencesUserRepository(context)
 
                 // Cria o objeto sem passar o 'id' (a API cria automático) e usando 'image = null'
                 val inventory = Inventory(

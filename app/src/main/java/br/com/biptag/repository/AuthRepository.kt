@@ -35,6 +35,7 @@ class AuthRepository {
                 put("phone", user.phoneNumber)
             }
         }
+
         return getCurrentUser() ?: throw Exception("Sign up failed")
     }
 
@@ -43,6 +44,7 @@ class AuthRepository {
             this.email = email
             this.password = password
         }
+
         return getCurrentUser() ?: throw Exception("Sign in failed")
     }
 

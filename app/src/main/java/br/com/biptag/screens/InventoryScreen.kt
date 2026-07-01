@@ -50,7 +50,6 @@ import br.com.biptag.components.TopBar
 import br.com.biptag.factory.RetrofitClient
 import br.com.biptag.model.Inventory
 import br.com.biptag.navigation.Destination
-import br.com.biptag.repository.SharedPreferencesUserRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import coil.compose.AsyncImage
 import br.com.biptag.repository.getAllInventories
@@ -92,7 +91,6 @@ fun InventoryScreen(navController: NavController) {
 @Composable
 fun ContentInventoryScreen(modifier: Modifier) {
     val context = LocalContext.current
-    val userShared = SharedPreferencesUserRepository(context)
 
     val items = getAllInventories()
 
