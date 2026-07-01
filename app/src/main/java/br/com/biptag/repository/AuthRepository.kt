@@ -19,6 +19,7 @@ class AuthRepository {
         val userInfo = session.user
 
         return User(
+            id = userInfo?.id ?: "",
             name = userInfo?.userMetadata?.get("name")?.jsonPrimitive?.contentOrNull ?: "",
             email = userInfo?.email ?: "",
             phoneNumber = userInfo?.userMetadata?.get("phone")?.jsonPrimitive?.contentOrNull ?: ""

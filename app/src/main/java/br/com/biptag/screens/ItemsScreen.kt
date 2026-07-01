@@ -1,7 +1,7 @@
 package br.com.biptag.screens
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -28,11 +28,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,23 +40,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import br.com.biptag.R
 import br.com.biptag.components.BipTagTextField
 import br.com.biptag.components.BottomBar
 import br.com.biptag.components.TopBar
-import br.com.biptag.factory.RetrofitClient
-import br.com.biptag.model.Inventory
+import br.com.biptag.model.Category
+import br.com.biptag.model.Item
 import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.AuthRepository
+import br.com.biptag.repository.ItemRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import coil.compose.AsyncImage
-import br.com.biptag.repository.getAllInventories
 
 @Composable
 fun InventoryScreen(navController: NavController) {
@@ -92,7 +89,20 @@ fun InventoryScreen(navController: NavController) {
 
 @Composable
 fun ContentInventoryScreen(modifier: Modifier) {
-    val items = getAllInventories()
+    val repository = ItemRepository()
+
+    var items by remember { mutableStateOf(listOf<Item>()) }
+
+    LaunchedEffect(Unit) {
+        try {
+            val result = repository.getAllItems()
+            Log.d("Supabase", "Itens carregados: $result")
+            items = result
+        } catch (e: Exception) {
+            Log.e("Supabase", "Erro ao carregar itens", e)
+        }
+    }
+
 
     Column(
         modifier = modifier.padding(horizontal = 16.dp)
@@ -117,8 +127,8 @@ fun ContentInventoryScreen(modifier: Modifier) {
 
 @SuppressLint("LocalContextResourcesRead")
 @Composable
-fun InventoryItem(item: Inventory) {
-    val baseUrl = RetrofitClient.BASE_URL.plus("itens")
+fun InventoryItem(item: Item) {
+    val baseUrl = ""
 
     val statusColor = when (item.status) {
         "Created", "Criado" -> MaterialTheme.colorScheme.surfaceVariant
@@ -152,14 +162,14 @@ fun InventoryItem(item: Inventory) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            AsyncImage(
-                model = baseUrl.plus(item.image),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
+//            AsyncImage(
+//                model = baseUrl.plus(item.image),
+//                contentDescription = null,
+//                modifier = Modifier
+//                    .size(56.dp)
+//                    .clip(RoundedCornerShape(8.dp)),
+//                contentScale = ContentScale.Crop
+//            )
 
             Column(
                 modifier = Modifier
@@ -172,7 +182,7 @@ fun InventoryItem(item: Inventory) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = item.category,
+                    text = item.category.name,
                     maxLines = 1,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -239,11 +249,11 @@ fun InventoryItem(item: Inventory) {
 private fun InventoryItemPreview() {
     BipTagTheme() {
 
-        val mockItem = Inventory(
+        val mockItem = Item(
             id = 1,
             name = "Notebook Dell",
             description = "I7 16GB RAM",
-            category = "Eletrônicos",
+            category = Category(1, "Eletronico"),
             status = "Verificado"
         )
 

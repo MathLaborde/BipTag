@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 )
 class User (
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    val id: String = "",
     var name: String = "",
     val email: String = "",
     val password: String = "",

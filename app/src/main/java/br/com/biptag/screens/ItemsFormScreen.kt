@@ -57,8 +57,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.biptag.R
 import br.com.biptag.components.TopBar
-import br.com.biptag.factory.RetrofitClient
-import br.com.biptag.model.Inventory
+import br.com.biptag.model.Category
+import br.com.biptag.model.Item
 import br.com.biptag.navigation.Destination
 import br.com.biptag.ui.theme.BipTagTheme
 import retrofit2.Call
@@ -66,7 +66,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 @Composable
-fun InventoryFormScreen(navController: NavController) {
+fun ItemFormScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopBar(
@@ -202,10 +202,10 @@ fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController)
                 isSaving = true
 
                 // Cria o objeto sem passar o 'id' (a API cria automático) e usando 'image = null'
-                val inventory = Inventory(
+                val inventory = Item(
                     name = name,
                     description = description,
-                    category = category,
+                    category = Category(0, ""),
                     userId = "00000000-0000-0000-0000-000000000000",
                     image = null // Supabase exige URL em String. Faremos upload da imagem em outro passo.
                 )
@@ -214,29 +214,7 @@ fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController)
                 val token = "Bearer ${apiKey}"
 
                 // Chamada da API com Retrofit
-                RetrofitClient.getInventoryService().insertInventory(apiKey, token, inventory)
-                    .enqueue(object : Callback<List<Inventory>> {
-                        override fun onResponse(
-                            call: Call<List<Inventory>>,
-                            response: Response<List<Inventory>>
-                        ) {
-                            isSaving = false
-                            if (response.isSuccessful) {
-                                Toast.makeText(context, "Item criado com sucesso!", Toast.LENGTH_SHORT).show()
-                                navController.navigate(Destination.InventoryScreen.route) {
-                                    popUpTo(Destination.InventoryFormScreen.route) { inclusive = true }
-                                }
-                            } else {
-                                Toast.makeText(context, "Erro: ${response.code()}", Toast.LENGTH_SHORT).show()
-                            }
-                        }
 
-                        override fun onFailure(call: Call<List<Inventory>>, t: Throwable) {
-                            isSaving = false
-                            t.printStackTrace()
-                            Toast.makeText(context, "Falha de conexão", Toast.LENGTH_SHORT).show()
-                        }
-                    })
             },
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
@@ -307,6 +285,6 @@ fun UserImage(
 @Composable
 private fun InventoryFormScreenPreview() {
     BipTagTheme {
-        InventoryFormScreen(rememberNavController())
+        ItemFormScreen(rememberNavController())
     }
 }
