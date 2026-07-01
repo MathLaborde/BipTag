@@ -228,8 +228,6 @@ fun FormLogin(navController: NavController) {
                                 navController.navigate(Destination.InventoryScreen.route)
                             }
                         }
-
-                        TODO("Validação dos formulario")
                     } catch (e: Exception) {
                         println("Supabase Login Erro: ${e.message}")
                         e.printStackTrace()
@@ -238,11 +236,6 @@ fun FormLogin(navController: NavController) {
                         }
                     }
                 }
-
-
-                TODO("Implementar um Loading, ao clicar no botão, deve aparecer algo " +
-                        "para mostrar o usuario está caregando para não clicar mais vezes. Colocar " +
-                        "também uma trava no botão para não ser clicado 2 vezes")
             }
         )
 
