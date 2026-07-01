@@ -32,20 +32,23 @@ fun BipTagTextField(
     leadingIcon: @Composable (() -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     isError: Boolean = false,
-    singleLine: Boolean = true
+    singleLine: Boolean = true,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    readOnly: Boolean = false
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp), // Estilo de borda padrão
+        shape = RoundedCornerShape(16.dp),
         visualTransformation = visualTransformation,
         placeholder = placeholder,
         leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
         isError = isError,
         singleLine = singleLine,
+        readOnly = readOnly,
         colors = OutlinedTextFieldDefaults.colors(
-            // Defina aqui as cores padrão para o app
             unfocusedBorderColor = MaterialTheme.colorScheme.outline,
             focusedBorderColor = MaterialTheme.colorScheme.primary,
 

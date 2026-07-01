@@ -6,11 +6,12 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.widget.Toast
+import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,7 +22,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Category
@@ -31,13 +34,18 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,21 +57,18 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.biptag.R
+import br.com.biptag.components.BipTagTextField
 import br.com.biptag.components.TopBar
 import br.com.biptag.model.Category
 import br.com.biptag.model.Item
-import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.CategoryRepository
 import br.com.biptag.ui.theme.BipTagTheme
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 @Composable
 fun ItemFormScreen(navController: NavController) {
@@ -78,16 +83,20 @@ fun ItemFormScreen(navController: NavController) {
             )
         },
     ) { paddingValues ->
-        ContentInventoryFormScreen(modifier = Modifier.padding(paddingValues), navController = navController)
+        ContentItemFormScreen(modifier = Modifier.padding(paddingValues), navController = navController)
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController) {
+fun ContentItemFormScreen(modifier: Modifier, navController: NavController) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("") }
-    var isSaving by remember { mutableStateOf(false) } // Controle para não clicar 2x no botão
+
+    var selectedCategory by remember { mutableStateOf<Category?>(null) }
+    var expanded by remember { mutableStateOf(false) }
+
+    var isSaving by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
@@ -108,14 +117,31 @@ fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController)
         }
     }
 
+    val scrollState = rememberScrollState()
+
+    var categoryList by remember { mutableStateOf(listOf<Category>()) }
+
+    val repository = CategoryRepository()
+
+    LaunchedEffect(Unit) {
+        try {
+            val result = repository.getAllItems()
+            Log.d("Supabase", "Categorias carregados: $result")
+            categoryList = result
+        } catch (e: Exception) {
+            Log.e("Supabase", "Erro ao carregar categorias", e)
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.SpaceBetween
+            .padding(16.dp)
+            .verticalScroll(scrollState),
     ){
         Column(
-            modifier = Modifier.padding(vertical = 6.dp)
+            modifier = Modifier
+                .padding(vertical = 6.dp)
         ) {
             UserImage(
                 profileImage = itemImage,
@@ -123,98 +149,144 @@ fun ContentInventoryFormScreen(modifier: Modifier, navController: NavController)
             )
             Text(
                 text = "Nome do item",
-                fontSize = 12.sp,
-                color = Color.Gray,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 4.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
+                style = MaterialTheme.typography.labelMedium
             )
-            OutlinedTextField(
+            BipTagTextField(
                 value = name,
                 onValueChange = { name = it },
                 singleLine = true,
-                placeholder = { Text("Ex.: Notebook Dell...", color = Color.LightGray) },
+                placeholder = {
+                    Text(
+                        text = "Ex.: Notebook Dell...",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 15.sp
+                    )
+                },
                 leadingIcon = {
-                    Icon(Icons.Outlined.Inventory2, contentDescription = null, tint = Color.Gray)
+                    Icon(
+                        imageVector =  Icons.Outlined.Inventory2,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.LightGray
-                )
             )
             Column(
-                modifier = Modifier.padding(vertical = 6.dp)
+                modifier = Modifier.padding(vertical = 18.dp)
             ) {
                 Text(
                     text = "Descrição",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(bottom = 4.dp)
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    style = MaterialTheme.typography.labelMedium
                 )
-                OutlinedTextField(
+                BipTagTextField(
                     value = description,
                     onValueChange = { description = it },
                     placeholder = {
                         Text(
                             "Marca, modelo, número de série...",
-                            color = Color.LightGray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 15.sp
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Category,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
                     modifier = Modifier
-                        .fillMaxWidth()
                         .height(100.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = Color.LightGray)
+                    singleLine = false
                 )
             }
-            Column(
-                modifier = Modifier.padding(vertical = 6.dp)
-            ) {
+            Column() {
                 Text(
                     text = "Categoria",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(bottom = 4.dp)
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    style = MaterialTheme.typography.labelMedium
                 )
-                OutlinedTextField(
-                    value = category,
-                    onValueChange = { category = it },
-                    singleLine = true,
-                    placeholder = { Text("Ex.: Eletrônicos...", color = Color.LightGray) },
-                    leadingIcon = {
-                        Icon(Icons.Outlined.Category, contentDescription = null, tint = Color.Gray)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = Color.LightGray)
-                )
+
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    BipTagTextField(
+                        value = selectedCategory?.name ?: "",
+                        onValueChange = {},
+                        readOnly = true,
+                        placeholder = {
+                            Text(
+                                text = "Selecione uma categoria",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 15.sp
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Category,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                        },
+                        modifier = Modifier
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                            .fillMaxWidth(),
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                    ) {
+                        categoryList.forEach { item ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(text = item.name)
+                                },
+                                onClick = {
+                                    selectedCategory = item
+                                    expanded = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                colors = MenuDefaults.itemColors(
+                                    textColor = MaterialTheme.colorScheme.primary,
+                                    leadingIconColor = MaterialTheme.colorScheme.primary,
+                                    trailingIconColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                        }
+                    }
+                }
             }
         }
+
+        Spacer(modifier = Modifier.weight(1f, fill = true))
 
         Button(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
-            enabled = !isSaving, // Desabilita enquanto salva
+            enabled = !isSaving,
             onClick = {
                 isSaving = true
 
-                // Cria o objeto sem passar o 'id' (a API cria automático) e usando 'image = null'
-                val inventory = Item(
+                val Item = Item(
                     name = name,
                     description = description,
-                    category = Category(0, ""),
+                    category = selectedCategory ?: Category(0, "Outros"),
                     userId = "00000000-0000-0000-0000-000000000000",
-                    image = null // Supabase exige URL em String. Faremos upload da imagem em outro passo.
+                    image = null
                 )
 
-                val apiKey = "sb_publishable_-uStjsesRzkPg7vwDmha9g_F17ohYyw"
-                val token = "Bearer ${apiKey}"
-
-                // Chamada da API com Retrofit
-
+                // TODO Salvar Item
             },
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
@@ -238,7 +310,6 @@ fun UserImage(
         modifier = Modifier
             .fillMaxWidth()
             .height(300.dp)
-            .padding(8.dp)
     ) {
         Box(
             modifier = Modifier
@@ -283,7 +354,7 @@ fun UserImage(
     uiMode = Configuration.UI_MODE_NIGHT_NO,
 )
 @Composable
-private fun InventoryFormScreenPreview() {
+private fun ItemFormScreenPreview() {
     BipTagTheme {
         ItemFormScreen(rememberNavController())
     }

@@ -275,6 +275,9 @@ fun FormSignUp(navController: NavController) {
 
         Spacer(modifier = Modifier.weight(1f, fill = true))
 
+
+        // TODO Colocar algo para mostrar que ta carregando, para o usuario não clicar varias vezes no botão
+
         Column() {
             PrimaryButton(
                 text = "Criar Conta",

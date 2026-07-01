@@ -215,6 +215,8 @@ fun FormLogin(navController: NavController) {
         )
         Spacer(modifier = Modifier.height(28.dp))
 
+        // TODO Colocar algo para mostrar que ta carregando, para o usuario não clicar varias vezes no botão
+
         PrimaryButton(
             text = "Entrar",
             onClick = {
