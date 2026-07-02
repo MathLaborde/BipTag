@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -128,15 +129,17 @@ fun ContentItemFormScreen(modifier: Modifier, navController: NavController) {
 
     var categoryList by remember { mutableStateOf(listOf<Category>()) }
 
-    val repository = CategoryRepository()
+    val isPreview = LocalInspectionMode.current
+    val repository = remember { if (isPreview) null else CategoryRepository() }
 
     val scope = rememberCoroutineScope()
-    val itemRepository = remember { ItemRepository() }
-    val authRepository = remember { AuthRepository() }
+    val itemRepository = remember { if (isPreview) null else ItemRepository() }
+    val authRepository = remember { if (isPreview) null else AuthRepository() }
 
     LaunchedEffect(Unit) {
+        if (isPreview) return@LaunchedEffect
         try {
-            val result = repository.getAllItems()
+            val result = repository?.getAllItems() ?: emptyList()
             Log.d("Supabase", "Categorias carregados: $result")
             categoryList = result
         } catch (e: Exception) {
@@ -278,7 +281,7 @@ fun ContentItemFormScreen(modifier: Modifier, navController: NavController) {
 
                 scope.launch {
                     try {
-                        val user = authRepository.getCurrentUser() ?: run {
+                        val user = authRepository?.getCurrentUser() ?: run {
                             Log.e("ItemForm", "Usuário não autenticado")
                             isSaving = false
                             return@launch
@@ -291,7 +294,7 @@ fun ContentItemFormScreen(modifier: Modifier, navController: NavController) {
                             bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, stream)
                             val byteArray = stream.toByteArray()
                             val fileName = "item_${System.currentTimeMillis()}.jpg"
-                            imageUrl = itemRepository.uploadImage(user.id, fileName, byteArray)
+                            imageUrl = itemRepository?.uploadImage(user.id, fileName, byteArray)
                         }
 
                         val newItem = Item(
@@ -302,7 +305,7 @@ fun ContentItemFormScreen(modifier: Modifier, navController: NavController) {
                             image = imageUrl
                         )
 
-                        itemRepository.saveItem(newItem)
+                        itemRepository?.saveItem(newItem)
 
                         navController.popBackStack()
 

@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,8 +31,11 @@ import kotlinx.coroutines.delay
 @Composable
 fun InitialScreen(navController: NavController) {
     val progressTarget = remember { mutableFloatStateOf(0f) }
+    val isPreview = LocalInspectionMode.current
 
-    val authRepository = remember { AuthRepository() }
+    val authRepository = remember {
+        if (isPreview) null else AuthRepository()
+    }
 
     val animatedProgress by animateFloatAsState(
         targetValue = progressTarget.floatValue,
@@ -40,10 +44,12 @@ fun InitialScreen(navController: NavController) {
     )
 
     LaunchedEffect(Unit) {
+        if (isPreview) return@LaunchedEffect
+
         progressTarget.floatValue = 1f
 
         val isLoggedIn = coroutineScope {
-            val checkTask = async { authRepository.isLoggedIn() }
+            val checkTask = async { authRepository?.isLoggedIn() ?: false }
             val timerTask = async { delay(2000) }
 
             timerTask.await()

@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -94,13 +95,15 @@ fun InventoryScreen(navController: NavController) {
 
 @Composable
 fun ContentInventoryScreen(modifier: Modifier) {
-    val repository = ItemRepository()
+    val isPreview = LocalInspectionMode.current
+    val repository = remember { if (isPreview) null else ItemRepository() }
 
     var items by remember { mutableStateOf(listOf<Item>()) }
 
     LaunchedEffect(Unit) {
+        if (isPreview) return@LaunchedEffect
         try {
-            val result = repository.getAllItems()
+            val result = repository?.getAllItems() ?: emptyList()
             Log.d("Supabase", "Itens carregados: $result")
             items = result
         } catch (e: Exception) {
@@ -133,7 +136,7 @@ fun ContentInventoryScreen(modifier: Modifier) {
 @SuppressLint("LocalContextResourcesRead")
 @Composable
 fun InventoryItem(item: Item) {
-    val baseUrl = ""
+    // TODO Implementar tela de loading.
 
     val statusColor = when (item.status) {
         "Created", "Criado" -> MaterialTheme.colorScheme.surfaceVariant
