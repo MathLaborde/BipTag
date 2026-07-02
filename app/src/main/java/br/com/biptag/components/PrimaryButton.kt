@@ -14,7 +14,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun PrimaryButton(
     text: String,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    enabled: Boolean = true
 ) {
     Button(
         onClick = onClick,
@@ -24,7 +25,8 @@ fun PrimaryButton(
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
-        )
+        ),
+        enabled = enabled
     ) {
         Text(
             text = text,

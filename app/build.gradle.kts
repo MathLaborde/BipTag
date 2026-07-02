@@ -79,6 +79,7 @@ dependencies {
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.auth)
     implementation(libs.supabase.compose.auth)
+    implementation(libs.supabase.storage)
 
     // Motor HTTP Ktor (Necessário para o Supabase)
     implementation(libs.ktor.client.android)

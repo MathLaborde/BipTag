@@ -1,6 +1,7 @@
 package br.com.biptag.screens
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -40,10 +41,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import br.com.biptag.R
 import br.com.biptag.components.BipTagTextField
 import br.com.biptag.components.BottomBar
@@ -158,36 +163,38 @@ fun InventoryItem(item: Item) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 12.dp),
+                .padding(14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-//            AsyncImage(
-//                model = baseUrl.plus(item.image),
-//                contentDescription = null,
-//                modifier = Modifier
-//                    .size(56.dp)
-//                    .clip(RoundedCornerShape(8.dp)),
-//                contentScale = ContentScale.Crop
-//            )
+             AsyncImage(
+                model = item.image,
+                contentDescription = "Imagem de ${item.name}",
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop,
+            )
+
+            Spacer(Modifier.size(14.dp))
 
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 12.dp, end = 8.dp)
             ) {
                 Text(
                     text = item.name,
-                    style = MaterialTheme.typography.displaySmall,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = item.category.name,
-                    maxLines = 1,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = item.categoryData?.name ?: "Sem categoria",
+                    maxLines = 1,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -203,7 +210,7 @@ fun InventoryItem(item: Item) {
                             modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
                             text = item.status,
                             color = statusTextColor,
-                            style = MaterialTheme.typography.labelSmall
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
 
@@ -216,22 +223,24 @@ fun InventoryItem(item: Item) {
                             imageVector = Icons.Outlined.Sell,
                             contentDescription = null,
                             modifier = Modifier.size(14.dp),
-                            tint = if (item.status == "Criado") {
+                            tint = if (item.tagId !== null) {
                                 MaterialTheme.colorScheme.primary
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant
                             }
                         )
+
                         Spacer(modifier = Modifier.width(4.dp))
+
                         Text(
-                            text = if (item.status == "Criado") {
+                            text = if (item.tagId !== null) {
                                 "Etiqueta vinculada"
                             } else {
                                 "Sem etiqueta"
                             },
                             maxLines = 1,
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (item.status == "Criado") {
+                            color = if (item.tagId !== null) {
                                 MaterialTheme.colorScheme.primary
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant
@@ -248,12 +257,12 @@ fun InventoryItem(item: Item) {
 @Composable
 private fun InventoryItemPreview() {
     BipTagTheme() {
-
         val mockItem = Item(
             id = 1,
             name = "Notebook Dell",
             description = "I7 16GB RAM",
-            category = Category(1, "Eletronico"),
+            category = 1,
+            categoryData = Category(1, "Eletronico"),
             status = "Verificado"
         )
 
@@ -264,6 +273,8 @@ private fun InventoryItemPreview() {
 @Composable
 fun MySearchBar() {
     var searchText by remember { mutableStateOf("") }
+
+    // TODO fazer busca dos Itens
 
     BipTagTextField(
         value = searchText,
@@ -287,13 +298,13 @@ fun MySearchBar() {
     )
 }
 
-//@Preview(
-//    showBackground = true,
-//    uiMode = Configuration.UI_MODE_NIGHT_NO,
-//)
-//@Composable
-//private fun InventoryScreenPreview() {
-//    BipTagTheme {
-//        InventoryScreen(navController = rememberNavController())
-//    }
-//}
+@Preview(
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+)
+@Composable
+private fun InventoryScreenPreview() {
+    BipTagTheme {
+        InventoryScreen(navController = rememberNavController())
+    }
+}

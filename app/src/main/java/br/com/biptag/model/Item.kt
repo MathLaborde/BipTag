@@ -16,8 +16,12 @@ data class Item (
 
     val name: String = "",
     val description: String = "",
+
+    @SerialName("category")
+    val category: Int,
     @SerialName("category_data")
-    val category: Category,
+    val categoryData: Category? = Category(0, ""),
+
     val status: String = "Criado",
 
     @SerialName("nf_key")

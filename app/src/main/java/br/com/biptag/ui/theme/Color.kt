@@ -22,6 +22,8 @@ val LightOnTertiary = Color(0xFFFFFFFF)
 
 val LightOutline = Color(0xFFE3E9ED)
 
+val LightOutlineVariant = Color(0xFF5E707B)
+
 val LightSurfaceVariant = Color(0xFFEAEEF1)
 val LightOnSurfaceVariant = Color(0xFF94A3AD)
 
