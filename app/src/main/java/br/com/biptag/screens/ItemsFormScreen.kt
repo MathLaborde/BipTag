@@ -66,12 +66,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import br.com.biptag.R
 import br.com.biptag.components.BipTagTextField
 import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
 import br.com.biptag.model.Category
 import br.com.biptag.model.Item
+import br.com.biptag.navigation.Destination
 import br.com.biptag.repository.AuthRepository
 import br.com.biptag.repository.CategoryRepository
 import br.com.biptag.repository.ItemRepository
@@ -307,7 +309,7 @@ fun ContentItemFormScreen(modifier: Modifier, navController: NavController) {
 
                         itemRepository?.saveItem(newItem)
 
-                        navController.popBackStack()
+                        navController.navigate(Destination.BindTagScreen.route)
 
                     } catch (e: Exception) {
                         Log.e("ItemForm", "Erro ao salvar item", e)
@@ -325,7 +327,6 @@ fun UserImage(
     profileImage: Bitmap?,
     launchImage: ManagedActivityResultLauncher<String, Uri?>
 ) {
-    // Configuração da borda tracejada
     val dashColor = Color(0xFF9FC6DA)
     val stroke = remember {
         Stroke(
@@ -398,16 +399,16 @@ fun UserImage(
     }
 }
 
-//@Preview(
-//    showBackground = true,
-//    uiMode = Configuration.UI_MODE_NIGHT_NO,
-//)
-//@Composable
-//private fun ItemFormScreenPreview() {
-//    BipTagTheme {
-//        ItemFormScreen(rememberNavController())
-//    }
-//}
+@Preview(
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+)
+@Composable
+private fun ContentItemFormScreenPreview() {
+    BipTagTheme {
+        ContentItemFormScreen(modifier = Modifier, rememberNavController())
+    }
+}
 @Preview(
     uiMode = Configuration.UI_MODE_NIGHT_NO,
 )

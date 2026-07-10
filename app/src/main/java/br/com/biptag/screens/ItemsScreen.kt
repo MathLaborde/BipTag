@@ -42,33 +42,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.biptag.R
 import br.com.biptag.components.BipTagTextField
 import br.com.biptag.components.BottomBar
+import br.com.biptag.components.FilterBottomSheet
 import br.com.biptag.components.TopBar
 import br.com.biptag.model.Category
 import br.com.biptag.model.Item
 import br.com.biptag.navigation.Destination
-import br.com.biptag.repository.AuthRepository
 import br.com.biptag.repository.ItemRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import coil.compose.AsyncImage
 
 @Composable
 fun InventoryScreen(navController: NavController) {
+
+    var showFilterSheet by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopBar(
                 title = stringResource(R.string.inventory),
-                endIcon = Icons.Default.Tune
+                endIcon = Icons.Default.Tune,
+                onEndIconClick = { showFilterSheet = true },
+                isEndIconActive = showFilterSheet
             )
         },
         bottomBar = {
@@ -90,6 +93,20 @@ fun InventoryScreen(navController: NavController) {
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         ContentInventoryScreen(modifier = Modifier.padding(paddingValues))
+
+        if (showFilterSheet) {
+            FilterBottomSheet(
+                onDismissRequest = {
+                    showFilterSheet = false
+                },
+                onApplyFilters = { selectedCategories, onlyVerified ->
+                    Log.d(
+                        "Filtros",
+                        "Categorias: $selectedCategories, Apenas Verificados: $onlyVerified"
+                    )
+                }
+            )
+        }
     }
 }
 
@@ -170,7 +187,7 @@ fun InventoryItem(item: Item) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-             AsyncImage(
+            AsyncImage(
                 model = item.image,
                 contentDescription = "Imagem de ${item.name}",
                 modifier = Modifier
@@ -289,7 +306,8 @@ fun MySearchBar() {
             )
         },
         leadingIcon = {
-            Icon(Icons.Default.Search,
+            Icon(
+                Icons.Default.Search,
                 contentDescription = "Buscar",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )

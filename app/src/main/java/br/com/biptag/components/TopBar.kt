@@ -15,6 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -37,34 +38,14 @@ fun TopBar(
     onClick: () -> Unit = {},
     title: String,
     endIcon:  ImageVector? = null,
+    onEndIconClick: () -> Unit = {},
+    isEndIconActive: Boolean = false
 ) {
     Column() {
         TopAppBar(
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.background
             ),
-            title = {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(end = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.displayMedium,
-                    )
-                    if (endIcon != null) {
-                        Icon(
-                            imageVector = endIcon,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                }
-            },
             navigationIcon = {
                 if (startIcon != null) {
                     IconButton(
@@ -72,17 +53,42 @@ fun TopBar(
                     ) {
                         Icon(
                             imageVector = startIcon,
-                            contentDescription = "",
+                            contentDescription = "Voltar",
                             modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.onBackground
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            },
+            title = {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            },
+            actions = {
+                if (endIcon != null) {
+                    IconButton(
+                        onClick = onEndIconClick,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = if (isEndIconActive) MaterialTheme.colorScheme.primary else Color.Transparent
+                        )
+                    ) {
+                        Icon(
+                            imageVector = endIcon,
+                            contentDescription = "Ação auxiliar",
+                            modifier = Modifier.size(24.dp),
+                            tint = if (isEndIconActive) Color.White else MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
             }
         )
         HorizontalDivider(
-            thickness = 0.5.dp,
-            color = MaterialTheme.colorScheme.outline
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.surfaceVariant
         )
     }
 }

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import br.com.biptag.screens.BindTagScreen
 import br.com.biptag.screens.CreditsScreen
 import br.com.biptag.screens.InitialScreen
 import br.com.biptag.screens.ItemFormScreen
@@ -38,6 +39,9 @@ fun NavigationRoutes() {
         }
         composable(Destination.InventoryFormScreen.route){
             ItemFormScreen(navController)
+        }
+        composable(Destination.BindTagScreen.route){
+            BindTagScreen(navController)
         }
 
         // Telas Dinâmicas (com argumento)

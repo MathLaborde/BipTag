@@ -24,4 +24,12 @@
     <string name="name">Name</string>
     <string name="category">Category</string>
     <string name="search">Search here...</string>
+    <string name="filter_title">Filtros</string>
+    <string name="filter_close_description">Fechar filtros</string>
+    <string name="filter_category_label">CATEGORIA</string>
+    <string name="filter_status_label">STATUS</string>
+    <string name="filter_verified_only">Apenas itens verificados</string>
+    <string name="filter_verified_description">Esconde itens com status criado</string>
+    <string name="filter_clear">Limpar</string>
+    <string name="filter_apply">Aplicar filtros</string>
 </resources>
