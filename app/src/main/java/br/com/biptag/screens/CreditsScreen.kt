@@ -2,6 +2,8 @@ package br.com.biptag.screens
 
 import android.content.Intent
 import android.content.res.Configuration
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
@@ -28,7 +29,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -87,36 +90,37 @@ fun CreditsContentScreen(modifier: Modifier){
     ){
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .padding(top = 16.dp)
         ) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.background,
+            Box(
                 modifier = Modifier
-                    .size(80.dp)
-                    .align(Alignment.CenterHorizontally)
-
+                    .size(75.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(25.dp)
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                ){
-                    Text(
-                        stringResource(R.string.bip_tag_abreviation),
-                        style = MaterialTheme.typography.displayMedium,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
+                Image(
+                    painter = painterResource(id = R.drawable.logo_mark),
+                    contentDescription = "Logo BipTag",
+                    Modifier.size(50.dp),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
+                )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 stringResource(R.string.biptag),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleLarge
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 stringResource(R.string.version),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
@@ -178,17 +182,17 @@ fun CreditsContentScreen(modifier: Modifier){
             Text(
                 stringResource(R.string.technologies),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.outlineVariant
             )
             Text(
                 stringResource(R.string.android_nativo_jetpack_compose_nfc),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 stringResource(R.string.postgresql_supabase),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -206,7 +210,7 @@ fun MyBottomCreditsBar(){
         Text(
             stringResource(R.string.fiap_sistemas_de_informa_o_2026),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }

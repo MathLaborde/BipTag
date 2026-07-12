@@ -1,57 +1,30 @@
 package br.com.biptag.screens
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.GridView
-import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material.icons.outlined.Notes
-import androidx.compose.material.icons.outlined.ReceiptLong
-import androidx.compose.material.icons.outlined.Sell
-import androidx.compose.material.icons.outlined.WarningAmber
-import androidx.compose.material.icons.outlined.Wifi
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -59,11 +32,33 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
+import br.com.biptag.model.Category
+import br.com.biptag.model.Item
 import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.ItemRepository
 import br.com.biptag.ui.theme.BipTagTheme
+import coil.compose.AsyncImage
 
 @Composable
 fun ItemDetailScreen(navController: NavController, itemId: Int) {
+
+    val isPreview = LocalInspectionMode.current
+    val repository = remember { if (isPreview) null else ItemRepository() }
+    var item by remember { mutableStateOf<Item?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    LaunchedEffect(itemId) {
+        if (isPreview) return@LaunchedEffect
+        try {
+            isLoading = true
+            item = repository?.getItemById(itemId)
+        } catch (e: Exception) {
+            Log.e("ItemDetail", "Erro ao carregar detalhes do item", e)
+        } finally {
+            isLoading = false
+        }
+    }
+
     Scaffold(
         topBar = {
             TopBar(
@@ -82,33 +77,58 @@ fun ItemDetailScreen(navController: NavController, itemId: Int) {
                         .padding(16.dp)
                         .background(color = MaterialTheme.colorScheme.surface)
                 ) {
-                    BottomActionButtons(navController)
+                    BottomActionButtons(navController, item?.id)
                 }
             }
         },
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            ItemHeaderSection()
-
-            Column(
-                modifier = Modifier.padding(16.dp)
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                ItemTitleSection()
-                Spacer(modifier = Modifier.height(16.dp))
-                RfidActionCard(navController)
-                Spacer(modifier = Modifier.height(16.dp))
-                ItemDetailsListCard()
+                CircularProgressIndicator()
+            }
+        } else if (item == null) {
+            Box(modifier = Modifier
+                .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Item não encontrado.")
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                val currentItem = item!!
+                ItemHeaderSection(currentItem)
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                ) {
+                    ItemTitleSection(currentItem)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    RfidActionCard(navController, currentItem)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    ItemDetailsListCard(currentItem)
+                }
             }
         }
     }
 }
 
 @Composable
-fun ItemHeaderSection() {
+fun ItemHeaderSection(item: Item) {
+
+    val statusColor = when (item.status) {
+        "Verified", "Verificado" -> MaterialTheme.colorScheme.primary
+        "Stolen", "Roubado" -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -124,63 +144,52 @@ fun ItemHeaderSection() {
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                modifier = Modifier
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Verificado",
+                    contentDescription = item.status,
                     modifier = Modifier.size(14.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = statusColor
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Verificado",
+                    text = item.status,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
+                    color = statusColor
                 )
             }
         }
-
         Column(
             modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surface,
-                modifier = Modifier.size(64.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Outlined.Image,
-                        contentDescription = "Foto do Item",
-                        modifier = Modifier.size(28.dp),
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Foto do item",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.outlineVariant
+            AsyncImage(
+                model = item.image,
+                contentDescription = "Foto do Item",
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape),
+                contentScale = ContentScale.Crop
             )
         }
     }
 }
 
 @Composable
-fun ItemTitleSection() {
+fun ItemTitleSection(item: Item) {
     Column {
         Text(
-            text = "Notebook Dell Inspiron",
+            text = item.name,
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "Eletrônicos",
+            text = item.categoryData?.name ?: "Sem categoria",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.outlineVariant
         )
@@ -188,11 +197,11 @@ fun ItemTitleSection() {
 }
 
 @Composable
-fun RfidActionCard(navController: NavController) {
+fun RfidActionCard(navController: NavController, item: Item) {
 
-    val isLinked = false
-    
-    if (!isLinked){
+    val isLinked = item.tagId != null
+
+    if (!isLinked) {
         val dashColor = MaterialTheme.colorScheme.onSecondary
         val stroke = remember {
             Stroke(
@@ -253,11 +262,13 @@ fun RfidActionCard(navController: NavController) {
                         )
                     }
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
+
                 PrimaryButton(
                     text = "Vincular etiqueta",
                     icon = Icons.Outlined.Wifi,
-                    onClick = { navController.navigate(Destination.BindTagScreen.route)}
+                    onClick = { navController.navigate(Destination.BindTagScreen.route) }
                 )
             }
         }
@@ -289,7 +300,7 @@ fun RfidActionCard(navController: NavController) {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Sell, // O ícone de etiqueta
+                        imageVector = Icons.Outlined.Sell,
                         contentDescription = "Ícone de etiqueta",
                         tint = MaterialTheme.colorScheme.surface,
                     )
@@ -305,7 +316,7 @@ fun RfidActionCard(navController: NavController) {
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Tag #A4B2-99F0",
+                        text = "Tag #${item.tagId}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.outlineVariant
                     )
@@ -339,7 +350,7 @@ fun RfidActionCard(navController: NavController) {
 }
 
 @Composable
-fun ItemDetailsListCard() {
+fun ItemDetailsListCard(item: Item) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -350,7 +361,7 @@ fun ItemDetailsListCard() {
             DetailRowItem(
                 icon = Icons.Outlined.GridView,
                 label = "Categoria",
-                value = "Eletrônicos"
+                value = item.categoryData?.name ?: "Nenhuma"
             )
             HorizontalDivider(
                 thickness = 1.dp,
@@ -359,7 +370,7 @@ fun ItemDetailsListCard() {
             DetailRowItem(
                 icon = Icons.Outlined.Notes,
                 label = "Descrição",
-                value = "i7, 16GB RAM · série 5GZ8X92"
+                value = item.description ?: "Sem descrição"
             )
             HorizontalDivider(
                 thickness = 1.dp,
@@ -405,7 +416,7 @@ fun DetailRowItem(icon: ImageVector, label: String, value: String) {
 }
 
 @Composable
-fun BottomActionButtons(navController: NavController) {
+fun BottomActionButtons(navController: NavController, itemId: Int?) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -414,19 +425,26 @@ fun BottomActionButtons(navController: NavController) {
         PrimaryButton(
             text = "Editar Item",
             icon = Icons.Outlined.Edit,
-            onClick = { navController.navigate(Destination.EditItemScreen.route) },
+            onClick = {
+                itemId?.let { id ->
+                    navController.navigate(Destination.EditItemScreen.route)
+                }
+            },
             modifier = Modifier
                 .weight(1f)
                 .height(56.dp)
         )
         Button(
-            onClick = { /* TODO Lógica de exclusão */ },
+            onClick = {},
             modifier = Modifier
                 .width(64.dp)
                 .height(56.dp),
             shape = RoundedCornerShape(12.dp),
             contentPadding = PaddingValues(0.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f)),
+            border = BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
+            ),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.error
@@ -446,10 +464,26 @@ fun BottomActionButtons(navController: NavController) {
     uiMode = Configuration.UI_MODE_NIGHT_NO,
     name = "Light Mode"
 )
-
 @Composable
 private fun ItemDetailScreenPreview() {
     BipTagTheme {
-        ItemDetailScreen(navController = rememberNavController(), itemId = 1)
+        val mockItem = Item(
+            id = 1,
+            name = "Notebook Dell Inspiron",
+            description = "i7, 16GB RAM · série 5GZ8X92",
+            category = 1,
+            categoryData = Category(1, "Eletrônicos"),
+            status = "Verificado",
+            tagId = "A4B2-99F0"
+        )
+
+        Scaffold { paddingValues ->
+            Column(modifier = Modifier.padding(paddingValues)) {
+                ItemHeaderSection(mockItem)
+                ItemTitleSection(mockItem)
+                RfidActionCard(rememberNavController(), mockItem)
+                ItemDetailsListCard(mockItem)
+            }
+        }
     }
 }

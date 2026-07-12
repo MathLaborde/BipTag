@@ -20,6 +20,7 @@ import br.com.biptag.ui.theme.BipTagTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterBottomSheet(
+    availableCategories: List<String>,
     initialSelectedCategories: Set<String> = emptySet(),
     initialOnlyVerified: Boolean = false,
     onDismissRequest: () -> Unit,
@@ -33,6 +34,7 @@ fun FilterBottomSheet(
         containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = { BottomSheetDefaults.DragHandle() }) {
         FilterBottomSheetContent(
+            availableCategories = availableCategories,
             initialSelectedCategories = initialSelectedCategories,
             initialOnlyVerified = initialOnlyVerified,
             onDismissRequest = onDismissRequest,
@@ -44,6 +46,7 @@ fun FilterBottomSheet(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FilterBottomSheetContent(
+    availableCategories: List<String>,
     initialSelectedCategories: Set<String>,
     initialOnlyVerified: Boolean,
     onDismissRequest: () -> Unit,
@@ -54,9 +57,6 @@ fun FilterBottomSheetContent(
     }
     var onlyVerified by remember(initialOnlyVerified) {
         mutableStateOf(initialOnlyVerified)
-    }
-    val categories = remember {
-        listOf("Eletrônicos", "Veículos", "Roupas", "Eletrodomésticos", "Acessórios", "Outros")
     }
 
     Column(
@@ -94,7 +94,7 @@ fun FilterBottomSheetContent(
         FlowRow(
             modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            categories.forEach { category ->
+            availableCategories.forEach { category ->
                 val isSelected = selectedCategories.contains(category)
                 FilterChip(
                     selected = isSelected,
@@ -203,10 +203,19 @@ fun FilterBottomSheetPreview() {
             modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface
         ) {
             FilterBottomSheetContent(
+                availableCategories = listOf(
+                    "Eletrônicos",
+                    "Veículos",
+                    "Roupas",
+                    "Eletrodomésticos",
+                    "Acessórios",
+                    "Outros"
+                ),
                 initialSelectedCategories = setOf("Eletrônicos", "Roupas"),
                 initialOnlyVerified = true,
                 onDismissRequest = {},
-                onApplyFilters = { _, _ -> })
+                onApplyFilters = { _, _ -> }
+            )
         }
     }
 }

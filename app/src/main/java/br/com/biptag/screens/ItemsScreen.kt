@@ -65,6 +65,9 @@ import coil.compose.AsyncImage
 fun InventoryScreen(navController: NavController) {
 
     var showFilterSheet by remember { mutableStateOf(false) }
+    var activeSelectedCategories by remember { mutableStateOf(emptySet<String>()) }
+    var activeOnlyVerified by remember { mutableStateOf(false) }
+    var availableCategories by remember { mutableStateOf(listOf<String>()) }
 
     Scaffold(
         topBar = {
@@ -95,19 +98,26 @@ fun InventoryScreen(navController: NavController) {
     ) { paddingValues ->
         ContentInventoryScreen(
             modifier = Modifier.padding(paddingValues),
-            navController = navController
+            navController = navController,
+            selectedCategories = activeSelectedCategories,
+            onlyVerified = activeOnlyVerified,
+            onCategoriesExtracted = { extracted ->
+                availableCategories = extracted
+            }
         )
 
         if (showFilterSheet) {
             FilterBottomSheet(
+                availableCategories = availableCategories,
+                initialSelectedCategories = activeSelectedCategories,
+                initialOnlyVerified = activeOnlyVerified,
                 onDismissRequest = {
                     showFilterSheet = false
                 },
-                onApplyFilters = { selectedCategories, onlyVerified ->
-                    Log.d(
-                        "Filtros",
-                        "Categorias: $selectedCategories, Apenas Verificados: $onlyVerified"
-                    )
+                onApplyFilters = { selected, verified ->
+                    activeSelectedCategories = selected
+                    activeOnlyVerified = verified
+                    showFilterSheet = false
                 }
             )
         }
@@ -117,12 +127,17 @@ fun InventoryScreen(navController: NavController) {
 @Composable
 fun ContentInventoryScreen(
     modifier: Modifier,
-    navController: NavController
+    navController: NavController,
+    selectedCategories: Set<String>,
+    onlyVerified: Boolean,
+    onCategoriesExtracted: (List<String>) -> Unit
 ) {
     val isPreview = LocalInspectionMode.current
     val repository = remember { if (isPreview) null else ItemRepository() }
 
     var items by remember { mutableStateOf(listOf<Item>()) }
+
+    var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         if (isPreview) return@LaunchedEffect
@@ -130,19 +145,43 @@ fun ContentInventoryScreen(
             val result = repository?.getAllItems() ?: emptyList()
             Log.d("Supabase", "Itens carregados: $result")
             items = result
+
+            val categories = result.mapNotNull { it.categoryData?.name }.distinct().sorted()
+            onCategoriesExtracted(categories)
         } catch (e: Exception) {
             Log.e("Supabase", "Erro ao carregar itens", e)
         }
     }
 
+    val filteredItems = remember(items, selectedCategories, onlyVerified, searchQuery) {
+        items.filter { item ->
+
+            val matchCategory = selectedCategories.isEmpty() ||
+                    selectedCategories.contains(item.categoryData?.name)
+
+            val matchVerified = !onlyVerified ||
+                    item.status == "Verified" ||
+                    item.status == "Verificado"
+
+            val matchSearch = searchQuery.isBlank() ||
+                    item.name.contains(searchQuery, ignoreCase = true)
+
+            matchCategory && matchVerified && matchSearch
+        }
+    }
 
     Column(
         modifier = modifier.padding(horizontal = 16.dp)
     ) {
-        MySearchBar()
+        MySearchBar(
+            searchText = searchQuery,
+            onSearchTextChanged = { newText ->
+                searchQuery = newText
+            }
+        )
 
         Text(
-            text = "${items.size} itens cadastrados",
+            text = "${filteredItems.size} itens encontrados",
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
             style = MaterialTheme.typography.labelSmall,
         )
@@ -150,11 +189,15 @@ fun ContentInventoryScreen(
         LazyColumn(
             modifier = Modifier.weight(1f)
         ) {
-            items(items) { item ->
+            items(filteredItems) { item ->
                 InventoryItem(
                     item = item,
                     onClick = {
-                        navController.navigate(Destination.ItemDetailScreen.createRoute(item.id ?: 0))
+                        navController.navigate(
+                            Destination.ItemDetailScreen.createRoute(
+                                item.id ?: 0
+                            )
+                        )
                     }
                 )
             }
@@ -168,8 +211,6 @@ fun InventoryItem(
     item: Item,
     onClick: () -> Unit
 ) {
-    // TODO Implementar tela de loading.
-
     val statusColor = when (item.status) {
         "Created", "Criado" -> MaterialTheme.colorScheme.surfaceVariant
         "Verified", "Verificado" -> MaterialTheme.colorScheme.secondary
@@ -307,14 +348,13 @@ private fun InventoryItemPreview() {
 }
 
 @Composable
-fun MySearchBar() {
-    var searchText by remember { mutableStateOf("") }
-
-    // TODO fazer busca dos Itens
-
+fun MySearchBar(
+    searchText: String,
+    onSearchTextChanged: (String) -> Unit
+) {
     BipTagTextField(
         value = searchText,
-        onValueChange = { searchText = it },
+        onValueChange = onSearchTextChanged,
         placeholder = {
             Text(
                 text = "Buscar item...",
