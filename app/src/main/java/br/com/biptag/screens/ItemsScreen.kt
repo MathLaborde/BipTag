@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -92,7 +93,10 @@ fun InventoryScreen(navController: NavController) {
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        ContentInventoryScreen(modifier = Modifier.padding(paddingValues))
+        ContentInventoryScreen(
+            modifier = Modifier.padding(paddingValues),
+            navController = navController
+        )
 
         if (showFilterSheet) {
             FilterBottomSheet(
@@ -111,7 +115,10 @@ fun InventoryScreen(navController: NavController) {
 }
 
 @Composable
-fun ContentInventoryScreen(modifier: Modifier) {
+fun ContentInventoryScreen(
+    modifier: Modifier,
+    navController: NavController
+) {
     val isPreview = LocalInspectionMode.current
     val repository = remember { if (isPreview) null else ItemRepository() }
 
@@ -144,7 +151,12 @@ fun ContentInventoryScreen(modifier: Modifier) {
             modifier = Modifier.weight(1f)
         ) {
             items(items) { item ->
-                InventoryItem(item)
+                InventoryItem(
+                    item = item,
+                    onClick = {
+                        navController.navigate(Destination.ItemDetailScreen.createRoute(item.id ?: 0))
+                    }
+                )
             }
         }
     }
@@ -152,7 +164,10 @@ fun ContentInventoryScreen(modifier: Modifier) {
 
 @SuppressLint("LocalContextResourcesRead")
 @Composable
-fun InventoryItem(item: Item) {
+fun InventoryItem(
+    item: Item,
+    onClick: () -> Unit
+) {
     // TODO Implementar tela de loading.
 
     val statusColor = when (item.status) {
@@ -177,7 +192,8 @@ fun InventoryItem(item: Item) {
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.outline,
                 shape = RoundedCornerShape(18.dp)
-            ),
+            )
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
@@ -286,7 +302,7 @@ private fun InventoryItemPreview() {
             status = "Verificado"
         )
 
-        InventoryItem(item = mockItem)
+        InventoryItem(item = mockItem, onClick = {})
     }
 }
 

@@ -11,7 +11,12 @@ sealed class Destination(val route: String){
     object CreditsScreen : Destination("credits")
     object InventoryFormScreen : Destination("inventory_form")
     object BindTagScreen : Destination("bind_tag_screen")
-    // Rotas Dinânimas
+    object ItemDetailScreen : Destination("item_detail_screen/{itemId}") {
+        fun createRoute(itemId: Int): String {
+            return "item_detail_screen/$itemId"
+        }
+    }
+    object EditItemScreen : Destination("edit_item_screen")
     object ProfileScreen : Destination("profile")
 
 
