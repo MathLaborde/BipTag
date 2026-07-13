@@ -28,6 +28,9 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.biptag.components.PrimaryButton
@@ -38,6 +41,9 @@ import br.com.biptag.navigation.Destination
 import br.com.biptag.repository.ItemRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import coil.compose.AsyncImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun ItemDetailScreen(navController: NavController, itemId: Int) {
@@ -46,16 +52,31 @@ fun ItemDetailScreen(navController: NavController, itemId: Int) {
     val repository = remember { if (isPreview) null else ItemRepository() }
     var item by remember { mutableStateOf<Item?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
 
-    LaunchedEffect(itemId) {
-        if (isPreview) return@LaunchedEffect
-        try {
-            isLoading = true
-            item = repository?.getItemById(itemId)
-        } catch (e: Exception) {
-            Log.e("ItemDetail", "Erro ao carregar detalhes do item", e)
-        } finally {
-            isLoading = false
+    DisposableEffect(lifecycleOwner, itemId) {
+
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                scope.launch {
+                    if (isPreview) return@launch
+                    try {
+                        isLoading = true
+                        item = repository?.getItemById(itemId)
+                    } catch (e: Exception) {
+                        Log.e("ItemDetail", "Erro ao recarregar detalhes do item", e)
+                    } finally {
+                        isLoading = false
+                    }
+                }
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
@@ -417,6 +438,13 @@ fun DetailRowItem(icon: ImageVector, label: String, value: String) {
 
 @Composable
 fun BottomActionButtons(navController: NavController, itemId: Int?) {
+
+    val scope = rememberCoroutineScope()
+    val isPreview = LocalInspectionMode.current
+    val repository = remember { if (isPreview) null else ItemRepository() }
+
+    var isDeleting by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -427,7 +455,7 @@ fun BottomActionButtons(navController: NavController, itemId: Int?) {
             icon = Icons.Outlined.Edit,
             onClick = {
                 itemId?.let { id ->
-                    navController.navigate(Destination.EditItemScreen.route)
+                    navController.navigate(Destination.EditItemScreen.createRoute(id))
                 }
             },
             modifier = Modifier
@@ -435,7 +463,26 @@ fun BottomActionButtons(navController: NavController, itemId: Int?) {
                 .height(56.dp)
         )
         Button(
-            onClick = {},
+            onClick = {
+                itemId?.let { id ->
+                    isDeleting = true
+                    scope.launch {
+                        try {
+                            repository?.deleteItem(id)
+
+                            withContext(Dispatchers.Main) {
+                                isDeleting = false
+                                navController.previousBackStackEntry?.savedStateHandle?.set("deve_atualizar", true)
+                                navController.popBackStack()
+                            }
+                        } catch (e: Exception) {
+                            Log.e("ItemDetail", "Erro ao excluir", e)
+                            isDeleting = false
+                        }
+                    }
+                }
+            },
+            enabled = !isDeleting,
             modifier = Modifier
                 .width(64.dp)
                 .height(56.dp),
@@ -450,11 +497,19 @@ fun BottomActionButtons(navController: NavController, itemId: Int?) {
                 contentColor = MaterialTheme.colorScheme.error
             )
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Delete,
-                contentDescription = "Excluir item",
-                modifier = Modifier.size(24.dp)
-            )
+            if (isDeleting) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.error,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Outlined.Delete,
+                    contentDescription = "Excluir item",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
     }
 }

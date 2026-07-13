@@ -6,6 +6,18 @@ import br.com.biptag.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.storage.storage
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class ItemUpdate(
+    val name: String,
+    val description: String?,
+    val category: Int?,
+    val image: String?,
+    val status: String,
+    @SerialName("tag_id") val tagId: String?
+)
 
 class ItemRepository {
     private val postgrest = SupabaseClient.client.from("items")
@@ -28,6 +40,29 @@ class ItemRepository {
         }
     }
 
+    suspend fun updateItem(item: Item) {
+        try {
+
+            val dadosParaAtualizar = ItemUpdate(
+                name = item.name,
+                description = item.description,
+                category = item.category,
+                image = item.image,
+                status = item.status,
+                tagId = item.tagId
+            )
+
+            postgrest.update(dadosParaAtualizar) {
+                filter {
+                    eq("id", item.id ?: 0)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ItemRepository", "Erro ao atualizar item: ${item.id}", e)
+            throw e
+        }
+    }
+
     suspend fun uploadImage(userId: String, fileName: String, byteArray: ByteArray): String {
         val bucket = storage.from("ItemImage")
         val path = "$userId/$fileName"
@@ -35,6 +70,19 @@ class ItemRepository {
             upsert = true
         }
         return bucket.publicUrl(path)
+    }
+
+    suspend fun deleteItem(id: Int) {
+        try {
+            postgrest.delete {
+                filter {
+                    eq("id", id)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ItemRepository", "Erro ao deletar item: $id", e)
+            throw e
+        }
     }
 
     suspend fun saveItem(item: Item) {

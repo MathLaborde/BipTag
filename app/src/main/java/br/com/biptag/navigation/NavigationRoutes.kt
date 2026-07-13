@@ -60,8 +60,14 @@ fun NavigationRoutes() {
             val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
             ItemDetailScreen(navController = navController, itemId = itemId)
         }
-        composable(Destination.EditItemScreen.route) {
-            EditItemScreen(navController)
+        composable(
+            route = Destination.EditItemScreen.route,
+            arguments = listOf(navArgument("itemId") { type = NavType.IntType })
+        ) { backStackEntry ->
+
+            val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
+
+            EditItemScreen(navController = navController, itemId = itemId)
         }
     }
 }

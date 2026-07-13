@@ -2,7 +2,6 @@ package br.com.biptag.navigation
 
 sealed class Destination(val route: String){
 
-    // Rotas Simples
     object InitialScreen : Destination("inital")
     object LoginScreen : Destination("login")
     object SignUpScreen : Destination("signup")
@@ -16,8 +15,11 @@ sealed class Destination(val route: String){
             return "item_detail_screen/$itemId"
         }
     }
-    object EditItemScreen : Destination("edit_item_screen")
+    object EditItemScreen : Destination("edit_item_screen/{itemId}"){
+        fun createRoute(itemId: Int): String {
+            return "edit_item_screen/$itemId"
+        }
+    }
+
     object ProfileScreen : Destination("profile")
-
-
 }

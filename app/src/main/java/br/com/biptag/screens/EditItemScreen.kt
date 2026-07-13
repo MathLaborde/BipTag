@@ -34,17 +34,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Notes
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.Sell
-import androidx.compose.material.icons.outlined.Sensors
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -69,7 +68,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -79,7 +77,6 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.biptag.components.BipTagTextField
@@ -87,12 +84,14 @@ import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
 import br.com.biptag.model.Category
 import br.com.biptag.model.Item
-import br.com.biptag.navigation.Destination
-import br.com.biptag.repository.AuthRepository
 import br.com.biptag.repository.CategoryRepository
 import br.com.biptag.repository.ItemRepository
 import br.com.biptag.ui.theme.BipTagTheme
+import coil.compose.AsyncImage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 
 @Composable
 fun EditItemScreen(navController: NavController, itemId: Int = 0) {
@@ -117,16 +116,23 @@ fun EditItemScreen(navController: NavController, itemId: Int = 0) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentEditItemScreen(modifier: Modifier, navController: NavController, itemId: Int) {
-    // Valores mockados inicialmente simulando os dados atuais do item
-    var name by remember { mutableStateOf("Notebook Dell Inspiron") }
-    var description by remember { mutableStateOf("i7, 16GB RAM · série 5GZ8X92") }
 
-    var selectedCategory by remember { mutableStateOf<Category?>(Category(1, "Eletrônicos")) }
+    var name by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf<Category?>(null) }
+    var isLinked by remember { mutableStateOf(false) }
+    var tagIdText by remember { mutableStateOf("") }
+
+    var existingImageUrl by remember { mutableStateOf<String?>(null) }
+    var itemImage by remember { mutableStateOf<Bitmap?>(null) }
+
+    var originalItem by remember { mutableStateOf<Item?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+
     var expanded by remember { mutableStateOf(false) }
     var isSaving by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
-    var itemImage by remember { mutableStateOf<Bitmap?>(null) }
 
     val launchImage = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -145,22 +151,42 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
     var categoryList by remember { mutableStateOf(listOf<Category>()) }
 
     val isPreview = LocalInspectionMode.current
-    val repository = remember { if (isPreview) null else CategoryRepository() }
+    val categoryRepository = remember { if (isPreview) null else CategoryRepository() }
     val scope = rememberCoroutineScope()
     val itemRepository = remember { if (isPreview) null else ItemRepository() }
-    val authRepository = remember { if (isPreview) null else AuthRepository() }
 
-    val isLinked = true
-
-    LaunchedEffect(Unit) {
+    LaunchedEffect(itemId) {
         if (isPreview) return@LaunchedEffect
         try {
-            val result = repository?.getAllItems() ?: emptyList()
-            categoryList = result
-            // Se fosse carregar dados do item real pelo ID, seria feito aqui também!
+            isLoading = true
+
+            val categories = categoryRepository?.getAllItems() ?: emptyList()
+            categoryList = categories
+
+            if (itemId > 0) {
+                val item = itemRepository?.getItemById(itemId)
+                if (item != null) {
+                    originalItem = item
+                    name = item.name
+                    description = item.description ?: ""
+                    existingImageUrl = item.image
+                    isLinked = item.tagId != null
+                    tagIdText = item.tagId ?: ""
+                    selectedCategory = categoryList.find { it.id == item.category } ?: item.categoryData
+                }
+            }
         } catch (e: Exception) {
-            Log.e("Supabase", "Erro ao carregar categorias", e)
+            Log.e("EditItem", "Erro ao carregar dados", e)
+        } finally {
+            isLoading = false
         }
+    }
+
+    if (isLoading) {
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
     }
 
     Column(
@@ -170,7 +196,8 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
             .verticalScroll(scrollState),
     ) {
         EditImageUploadArea(
-            profileImage = itemImage,
+            itemImage = itemImage,
+            existingImageUrl = existingImageUrl,
             launchImage = launchImage
         )
 
@@ -214,7 +241,7 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
                         .padding(top = 16.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Notes, // Icone correspondente ao mockup
+                        imageVector = Icons.Outlined.Notes,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -312,7 +339,7 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
                             cornerRadius = CornerRadius(12.dp.toPx())
                         )
                     }
-                    .clickable { /* TODO Navegar para BindTagScreen */ }
+                    .clickable {}
                     .padding(16.dp)
             ) {
                 Row(
@@ -363,16 +390,14 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface // Fundo branco/claro
+                        containerColor = MaterialTheme.colorScheme.surface
                     ),
-                    // Borda bem sutil, igual ao design
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Caixinha azul bem clara do ícone
                         Surface(
                             shape = RoundedCornerShape(8.dp),
                             color = MaterialTheme.colorScheme.secondary,
@@ -390,10 +415,9 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
 
                         Spacer(modifier = Modifier.width(16.dp))
 
-                        // Textos
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Tag #A4B2-99F0",
+                                text = "Tag #$tagIdText",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.primary
@@ -406,16 +430,15 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
                             )
                         }
 
-                        // Botão "Trocar" (Pill-shaped)
                         OutlinedButton(
                             onClick = { },
-                            shape = RoundedCornerShape(20.dp), // Isso deixa ele em formato de pílula
+                            shape = RoundedCornerShape(20.dp),
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground),
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                            modifier = Modifier.height(36.dp) // Altura reduzida para ficar delicado
+                            modifier = Modifier.height(36.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.Wifi, // Ícone de sinal/RFID
+                                imageVector = Icons.Outlined.Wifi,
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp),
                                 tint = MaterialTheme.colorScheme.onBackground
@@ -433,15 +456,15 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp)) // Deixa o efeito de clique (ripple) arredondado
+                        .clip(RoundedCornerShape(8.dp))
                         .clickable { }
-                        .padding(vertical = 12.dp, horizontal = 4.dp), // Área de toque confortável, colado na esquerda
+                        .padding(vertical = 12.dp, horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Delete,
                         contentDescription = "Remover etiqueta",
-                        tint = MaterialTheme.colorScheme.error, // Usa o vermelho padrão de erro do tema
+                        tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(15.dp)
                     )
 
@@ -465,9 +488,38 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
                 isSaving = true
                 scope.launch {
                     try {
-                        // Lógica futura de UPDATE no Supabase
-                        isSaving = false
-                        navController.popBackStack()
+                        var finalImageUrl = existingImageUrl
+
+                        if (itemImage != null && originalItem != null) {
+
+                            val stream = ByteArrayOutputStream()
+                            itemImage!!.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+                            val byteArray = stream.toByteArray()
+                            val fileName = "item_${originalItem!!.id}_${System.currentTimeMillis()}.jpg"
+                            val userId = "usuario_logado_id"
+                            val novaUrl = itemRepository?.uploadImage(userId, fileName, byteArray)
+                            if (novaUrl != null) {
+                                finalImageUrl = novaUrl
+                            }
+                        }
+
+                        val updatedItem = originalItem?.let { itemAtual ->
+                            itemAtual.copy(
+                                name = name,
+                                description = description,
+                                category = selectedCategory?.id ?: itemAtual.category,
+                                image = finalImageUrl
+                            )
+                        }
+
+                        if (updatedItem != null) {
+                            itemRepository?.updateItem(updatedItem)
+                        }
+
+                        withContext(Dispatchers.Main) {
+                            isSaving = false
+                            navController.popBackStack()
+                        }
                     } catch (e: Exception) {
                         Log.e("EditItem", "Erro ao atualizar item", e)
                         isSaving = false
@@ -481,13 +533,14 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
 
 @Composable
 fun EditImageUploadArea(
-    profileImage: Bitmap?,
+    itemImage: Bitmap?,
+    existingImageUrl: String?,
     launchImage: ManagedActivityResultLauncher<String, Uri?>
 ) {
     val dashColor = MaterialTheme.colorScheme.onSecondary
     val stroke = remember {
         Stroke(
-            width = 6f, // Deixei um pouco mais fino que a criação para manter a elegância do Edit
+            width = 6f,
             pathEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 16f), 0f)
         )
     }
@@ -508,14 +561,23 @@ fun EditImageUploadArea(
             .clickable { launchImage.launch("image/*") },
         contentAlignment = Alignment.Center,
     ) {
-        if (profileImage != null) {
+        if (itemImage != null) {
             Image(
-                bitmap = profileImage.asImageBitmap(),
+                bitmap = itemImage.asImageBitmap(),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
-        } else {
+        }
+        else if (existingImageUrl != null){
+            AsyncImage(
+                model = existingImageUrl,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+        else {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
