@@ -85,7 +85,14 @@ class ItemRepository {
         }
     }
 
-    suspend fun saveItem(item: Item) {
-        postgrest.insert(item)
+    suspend fun saveItem(item: Item): Item {
+        try {
+            return postgrest.insert(item) {
+                select()
+            }.decodeSingle<Item>()
+        } catch (e: Exception) {
+            Log.e("ItemRepository", "Erro ao salvar novo item", e)
+            throw e
+        }
     }
 }

@@ -1,6 +1,7 @@
 package br.com.biptag.screens
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +23,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -33,10 +36,18 @@ import androidx.navigation.compose.rememberNavController
 import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
 import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.ItemRepository
 import br.com.biptag.ui.theme.BipTagTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
-fun BindTagScreen(navController: NavController) {
+fun BindTagScreen(navController: NavController, itemId: Int) {
+
+    val scope = rememberCoroutineScope()
+    val repository = remember { ItemRepository() }
+
     Scaffold(
         topBar = {
             TopBar(
@@ -126,7 +137,26 @@ fun BindTagScreen(navController: NavController) {
 
             PrimaryButton(
                 text = "Confirmar vínculo",
-                onClick = { navController.navigate(Destination.InventoryScreen.route) }
+                onClick = {
+                    scope.launch {
+                        try {
+                            val itemAtual = repository.getItemById(itemId)
+
+                            if (itemAtual != null) {
+                                val itemAtualizado = itemAtual.copy(tagId = "Tag #A4B2-99F0")
+                                repository.updateItem(itemAtualizado)
+                            }
+
+                            withContext(Dispatchers.Main) {
+                                navController.previousBackStackEntry?.savedStateHandle?.set("deve_atualizar", true)
+                                navController.popBackStack()
+                            }
+
+                        } catch (e: Exception) {
+                            Log.e("BindTag", "Erro ao vincular etiqueta", e)
+                        }
+                    }
+                }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -154,6 +184,6 @@ fun BindTagScreen(navController: NavController) {
 @Composable
 private fun BindTagScreenPreview() {
     BipTagTheme {
-        BindTagScreen(navController = rememberNavController())
+        BindTagScreen(navController = rememberNavController(), itemId = 0)
     }
 }

@@ -44,13 +44,18 @@ fun NavigationRoutes() {
         composable(Destination.InventoryFormScreen.route) {
             ItemFormScreen(navController)
         }
-        composable(Destination.BindTagScreen.route) {
-            BindTagScreen(navController)
-        }
         composable(Destination.ProfileScreen.route) {
             ProfileScreen(navController)
         }
         // Telas dinâmicas com argumentos
+        composable(
+            route = Destination.BindTagScreen.route,
+            arguments = listOf(navArgument("itemId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
+
+            BindTagScreen(navController = navController, itemId = itemId)
+        }
         composable(
             route = Destination.ItemDetailScreen.route,
             arguments = listOf(navArgument("itemId") {
@@ -63,7 +68,7 @@ fun NavigationRoutes() {
         composable(
             route = Destination.EditItemScreen.route,
             arguments = listOf(navArgument("itemId") { type = NavType.IntType })
-        ) { backStackEntry ->
+        ) { backStackEntry   ->
 
             val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
 

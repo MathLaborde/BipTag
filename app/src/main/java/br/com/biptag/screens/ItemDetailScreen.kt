@@ -6,8 +6,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -119,10 +121,13 @@ fun ItemDetailScreen(navController: NavController, itemId: Int) {
                 Text("Item não encontrado.")
             }
         } else {
+            val scrollState = rememberScrollState()
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
+                    .verticalScroll(scrollState)
             ) {
                 val currentItem = item!!
                 ItemHeaderSection(currentItem)
@@ -220,7 +225,7 @@ fun ItemTitleSection(item: Item) {
 @Composable
 fun RfidActionCard(navController: NavController, item: Item) {
 
-    val isLinked = item.tagId != null
+    val isLinked = !item.tagId.isNullOrEmpty()
 
     if (!isLinked) {
         val dashColor = MaterialTheme.colorScheme.onSecondary
@@ -289,7 +294,11 @@ fun RfidActionCard(navController: NavController, item: Item) {
                 PrimaryButton(
                     text = "Vincular etiqueta",
                     icon = Icons.Outlined.Wifi,
-                    onClick = { navController.navigate(Destination.BindTagScreen.route) }
+                    onClick = {
+                        item.id?.let { id ->
+                            navController.navigate(Destination.BindTagScreen.createRoute(id))
+                        }
+                    }
                 )
             }
         }
