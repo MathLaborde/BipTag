@@ -84,6 +84,7 @@ import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
 import br.com.biptag.model.Category
 import br.com.biptag.model.Item
+import br.com.biptag.navigation.Destination
 import br.com.biptag.repository.CategoryRepository
 import br.com.biptag.repository.ItemRepository
 import br.com.biptag.ui.theme.BipTagTheme
@@ -120,7 +121,7 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
-    var isLinked by remember { mutableStateOf(false) }
+    var isLinked by remember { mutableStateOf(true) }
     var tagIdText by remember { mutableStateOf("") }
 
     var existingImageUrl by remember { mutableStateOf<String?>(null) }
@@ -339,7 +340,11 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
                             cornerRadius = CornerRadius(12.dp.toPx())
                         )
                     }
-                    .clickable {}
+                    .clickable {
+                        originalItem?.id?.let { id ->
+                            navController.navigate(Destination.BindTagScreen.createRoute(id))
+                        }
+                    }
                     .padding(16.dp)
             ) {
                 Row(
@@ -457,7 +462,10 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { }
+                        .clickable {
+                            isLinked = false;
+                            tagIdText = "";
+                        }
                         .padding(vertical = 12.dp, horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -508,7 +516,8 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
                                 name = name,
                                 description = description,
                                 category = selectedCategory?.id ?: itemAtual.category,
-                                image = finalImageUrl
+                                image = finalImageUrl,
+                                tagId = tagIdText.ifEmpty { null }
                             )
                         }
 

@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -39,8 +42,18 @@ fun BottomBar(navController: NavController) {
             route = Destination.InventoryScreen.route
         ),
         BottomNavigationItem(
+            "Mapa",
+            icon = Icons.Outlined.Map,
+            route = "map_screen" // Substituir pela rota quando criar
+        ),
+        BottomNavigationItem(
+            "Alertas",
+            icon = Icons.Outlined.Notifications,
+            route = "alerts_screen" // Substituir pela rota quando criar
+        ),
+        BottomNavigationItem(
             "Perfil",
-            icon =  Icons.Outlined.Person,
+            icon = Icons.Outlined.Person,
             route = Destination.ProfileScreen.route
         )
     )
@@ -91,7 +104,9 @@ fun BottomBar(navController: NavController) {
                 label = {
                     Text(
                         text = item.title,
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                        ),
                         color = if (isSelected) {
                             MaterialTheme.colorScheme.primary
                         } else {

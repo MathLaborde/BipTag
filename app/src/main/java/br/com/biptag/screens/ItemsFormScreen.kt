@@ -78,7 +78,9 @@ import br.com.biptag.repository.AuthRepository
 import br.com.biptag.repository.CategoryRepository
 import br.com.biptag.repository.ItemRepository
 import br.com.biptag.ui.theme.BipTagTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun ItemFormScreen(navController: NavController) {
@@ -307,13 +309,27 @@ fun ContentItemFormScreen(modifier: Modifier, navController: NavController) {
                             image = imageUrl
                         )
 
-                        itemRepository?.saveItem(newItem)
+                        val itemSalvo = itemRepository?.saveItem(newItem)
 
-                        navController.navigate(Destination.BindTagScreen.route)
+                        withContext(Dispatchers.Main) {
+                            isSaving = false
+
+                            navController.previousBackStackEntry?.savedStateHandle?.set("deve_atualizar", true)
+
+                            itemSalvo?.id?.let { idGerado ->
+                                navController.navigate(Destination.BindTagScreen.createRoute(idGerado)) {
+                                    popUpTo(Destination.InventoryFormScreen.route) { inclusive = true }
+                                }
+                            } ?: run {
+                                navController.popBackStack()
+                            }
+                        }
 
                     } catch (e: Exception) {
                         Log.e("ItemForm", "Erro ao salvar item", e)
-                        isSaving = false
+                        withContext(Dispatchers.Main) {
+                            isSaving = false
+                        }
                     }
                 }
             },
