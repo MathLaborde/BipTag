@@ -25,5 +25,11 @@ sealed class Destination(val route: String){
         }
     }
 
+    object ReportItemScreen : Destination("report_item/{itemId}") {
+        fun createRoute(itemId: Int): String {
+          return "report_item/$itemId"
+        }
+    }
+
     object ProfileScreen : Destination("profile")
 }

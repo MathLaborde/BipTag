@@ -373,7 +373,11 @@ fun RfidActionCard(navController: NavController, item: Item) {
                 text = "Reportar perda ou roubo",
                 icon = Icons.Outlined.WarningAmber,
                 containerColor = Color(0xFFDC4D3C),
-                onClick = { }
+                onClick = {
+                    item.id?.let { id ->
+                        navController.navigate(Destination.ReportItemScreen.createRoute(id))
+                    }
+                }
             )
         }
     }
