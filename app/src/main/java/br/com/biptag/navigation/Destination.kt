@@ -32,4 +32,6 @@ sealed class Destination(val route: String){
     }
 
     object ProfileScreen : Destination("profile")
+
+    object AlertsScreen : Destination("alerts")
 }

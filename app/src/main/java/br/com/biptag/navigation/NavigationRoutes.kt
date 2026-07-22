@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import br.com.biptag.screens.AlertsScreen
 import br.com.biptag.screens.BindTagScreen
 import br.com.biptag.screens.CreditsScreen
 import br.com.biptag.screens.EditItemScreen
@@ -87,7 +88,12 @@ fun NavigationRoutes() {
                      navController.popBackStack()
                 },
                 onSubmitClick = {}
+
             )
         }
+        composable(Destination.AlertsScreen.route) {
+            AlertsScreen(navController = navController)
+        }
     }
+
 }

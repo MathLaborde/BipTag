@@ -46,6 +46,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
+import br.com.biptag.navigation.Destination
 import br.com.biptag.ui.theme.BipTagTheme
 
 @Composable
@@ -56,7 +57,9 @@ fun AlertIssuedScreen(navController: NavController) {
                 TopBar(
                     title = "Alerta emitido",
                     startIcon = Icons.AutoMirrored.Outlined.ArrowBack,
-                    onClick = { navController.popBackStack() }
+                    onClick = {
+                        navController.popBackStack()
+                    }
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
             }
@@ -81,8 +84,9 @@ fun AlertIssuedScreen(navController: NavController) {
 
                     OutlinedButton(
                         onClick = {
-                            // Exemplo: Voltar para a Home limpando a pilha de telas
-                            navController.popBackStack(navController.graph.startDestinationId, false)
+                            navController.navigate(Destination.AlertsScreen.route) {
+                                popUpTo(0)
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -100,7 +104,7 @@ fun AlertIssuedScreen(navController: NavController) {
                 }
             }
         },
-        containerColor = Color(0xFFF7F9FA) // Fundo cinza bem claro para destacar os cards brancos
+        containerColor = Color(0xFFF7F9FA)
     ) { paddingValues ->
         ContentAlertIssuedScreen(
             modifier = Modifier.padding(paddingValues)
@@ -112,7 +116,7 @@ fun AlertIssuedScreen(navController: NavController) {
 fun ContentAlertIssuedScreen(modifier: Modifier) {
     val scrollState = rememberScrollState()
 
-    // Cores específicas da identidade visual da tela de sucesso
+
     val successGreen = Color(0xFF1FA363)
     val lightGreenBg = Color(0xFFE8F6F0)
 
@@ -125,7 +129,7 @@ fun ContentAlertIssuedScreen(modifier: Modifier) {
     ) {
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Ícone de Alerta Central
+
         Box(
             modifier = Modifier
                 .size(80.dp)
@@ -143,7 +147,7 @@ fun ContentAlertIssuedScreen(modifier: Modifier) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Títulos
+
         Text(
             text = "Alerta emitido!",
             style = MaterialTheme.typography.headlineSmall.copy(fontSize = 22.sp),
@@ -163,7 +167,7 @@ fun ContentAlertIssuedScreen(modifier: Modifier) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Row de Estatísticas
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -188,7 +192,7 @@ fun ContentAlertIssuedScreen(modifier: Modifier) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Card da Timeline (O que acontece agora)
+
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -282,13 +286,13 @@ fun TimelineStep(
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.Top
     ) {
-        // Container padronizado para o ícone (tamanho maior para dar o respiro do Figma)
+
         Box(
             modifier = Modifier
-                .size(32.dp) // Aumentamos para 32dp para caber o fundo
+                .size(32.dp)
                 .clip(CircleShape)
                 .background(
-                    if (isActive) activeBgColor else Color(0xFFEFF3F5) // Fundo verdinho ou cinza clarinho
+                    if (isActive) activeBgColor else Color(0xFFEFF3F5)
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -297,13 +301,13 @@ fun TimelineStep(
                     imageVector = Icons.Outlined.Check,
                     contentDescription = "Passo ativo",
                     tint = activeColor,
-                    modifier = Modifier.size(18.dp) // Ícone ligeiramente menor que o fundo
+                    modifier = Modifier.size(18.dp)
                 )
             } else {
                 Icon(
                     imageVector = Icons.Outlined.RadioButtonUnchecked,
                     contentDescription = "Passo pendente",
-                    tint = Color(0xFF90A4AE), // Cinza azulado para combinar com a borda do figma
+                    tint = Color(0xFF90A4AE),
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -316,7 +320,7 @@ fun TimelineStep(
                 text = title,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.bodyMedium,
-                // O Figma mantém o título escuro mesmo nos inativos
+
                 color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(2.dp))
