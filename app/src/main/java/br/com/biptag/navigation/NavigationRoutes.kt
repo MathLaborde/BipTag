@@ -15,6 +15,7 @@ import br.com.biptag.screens.InventoryScreen
 import br.com.biptag.screens.ItemDetailScreen
 import br.com.biptag.screens.LoginScreen
 import br.com.biptag.screens.ProfileScreen
+import br.com.biptag.screens.ReportItemScreen
 import br.com.biptag.screens.SignUpScreen
 
 @Composable
@@ -73,6 +74,20 @@ fun NavigationRoutes() {
             val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
 
             EditItemScreen(navController = navController, itemId = itemId)
+        }
+        composable(
+            route = Destination.ReportItemScreen.route,
+            arguments = listOf(navArgument("itemId") { type = NavType.IntType })
+        ) { backStackEntry ->
+
+            val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
+
+            ReportItemScreen(
+                onBackClick = {
+                     navController.popBackStack()
+                },
+                onSubmitClick = {}
+            )
         }
     }
 }
