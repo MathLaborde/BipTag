@@ -1,12 +1,14 @@
 - [x] Configurar rotas de navegação
-    - [x] Adicionar `MapScreen` em `Destination.kt`
-    - [x] Atualizar rotas em `BottonBar.kt`
-    - [x] Adicionar `MapsScreen` em `NavigationRoutes.kt`
-- [x] Criar a tela `Maps.kt`
-    - [x] Implementar estrutura base com `Scaffold`
-    - [x] Adicionar `TopBar` e `BottonBar`
-    - [x] Criar componente de mapa (placeholder)
-    - [x] Adicionar barra de busca e legenda flutuante
-    - [x] Adicionar FAB de localização
-    - [x] Criar card inferior de item selecionado
+    - [x] Adicionar `LostItemScreen` em `Destination.kt`
+    - [x] Registrar `LostItemScreen` em `NavigationRoutes.kt`
+    - [x] Atualizar clique em `Maps.kt` para navegar para a nova tela
+- [x] Criar a tela `LostItem.kt`
+    - [x] Estrutura base com `Scaffold` e `TopBar`
+    - [x] Card de imagem com badge "Perdido há 3h"
+    - [x] Seção de título e categoria
+    - [x] Card de informações do reportador (Marina S.)
+    - [x] Mini mapa com tag de endereço
+    - [x] Seção de descrição
+    - [x] Card de aviso de segurança (escudo)
+    - [x] Botão inferior "Estou com este item"
 - [x] Verificar navegação e UI

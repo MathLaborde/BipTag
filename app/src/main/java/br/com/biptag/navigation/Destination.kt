@@ -36,4 +36,6 @@ sealed class Destination(val route: String){
     object AlertsScreen : Destination("alerts")
 
     object MapScreen : Destination("map_screen")
+
+    object LostItemScreen : Destination("lost_item_screen")
 }

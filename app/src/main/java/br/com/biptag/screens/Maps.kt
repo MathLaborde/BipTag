@@ -50,6 +50,7 @@ import br.com.biptag.components.BipTagTextField
 import br.com.biptag.components.BottomBar
 import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
+import br.com.biptag.navigation.Destination
 import br.com.biptag.ui.theme.BipTagTheme
 
 @Composable
@@ -146,7 +147,10 @@ fun MapsScreen(navController: NavController) {
             SelectedItemCard(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(16.dp)
+                    .padding(16.dp),
+                onViewDetailClick = {
+                    navController.navigate(Destination.LostItemScreen.route)
+                }
             )
         }
     }
@@ -240,7 +244,10 @@ fun MarkerItem(modifier: Modifier = Modifier, color: Color) {
 }
 
 @Composable
-fun SelectedItemCard(modifier: Modifier = Modifier) {
+fun SelectedItemCard(
+    modifier: Modifier = Modifier,
+    onViewDetailClick: () -> Unit
+) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -310,7 +317,7 @@ fun SelectedItemCard(modifier: Modifier = Modifier) {
 
             PrimaryButton(
                 text = "Ver item perdido",
-                onClick = { /* Navegar para detalhes */ }
+                onClick = onViewDetailClick
             )
         }
     }
@@ -321,5 +328,12 @@ fun SelectedItemCard(modifier: Modifier = Modifier) {
 private fun MapsScreenPreview() {
     BipTagTheme {
         MapsScreen(navController = rememberNavController())
+    }
+}
+
+@Composable
+fun SelectedItemCardPreview() {
+    BipTagTheme {
+        SelectedItemCard(onViewDetailClick = {})
     }
 }
