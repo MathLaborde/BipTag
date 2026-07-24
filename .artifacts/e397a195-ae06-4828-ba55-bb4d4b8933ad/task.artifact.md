@@ -1,0 +1,12 @@
+- [x] Configurar rotas de navegação
+    - [x] Adicionar `MapScreen` em `Destination.kt`
+    - [x] Atualizar rotas em `BottonBar.kt`
+    - [x] Adicionar `MapsScreen` em `NavigationRoutes.kt`
+- [x] Criar a tela `Maps.kt`
+    - [x] Implementar estrutura base com `Scaffold`
+    - [x] Adicionar `TopBar` e `BottonBar`
+    - [x] Criar componente de mapa (placeholder)
+    - [x] Adicionar barra de busca e legenda flutuante
+    - [x] Adicionar FAB de localização
+    - [x] Criar card inferior de item selecionado
+- [x] Verificar navegação e UI

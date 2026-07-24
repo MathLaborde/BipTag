@@ -44,7 +44,7 @@ fun BottomBar(navController: NavController) {
         BottomNavigationItem(
             "Mapa",
             icon = Icons.Outlined.Map,
-            route = "map_screen" // Substituir pela rota quando criar
+            route = Destination.MapScreen.route
         ),
         BottomNavigationItem(
             "Alertas",

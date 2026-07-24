@@ -15,6 +15,7 @@ import br.com.biptag.screens.ItemFormScreen
 import br.com.biptag.screens.InventoryScreen
 import br.com.biptag.screens.ItemDetailScreen
 import br.com.biptag.screens.LoginScreen
+import br.com.biptag.screens.MapsScreen
 import br.com.biptag.screens.ProfileScreen
 import br.com.biptag.screens.ReportItemScreen
 import br.com.biptag.screens.SignUpScreen
@@ -93,6 +94,9 @@ fun NavigationRoutes() {
         }
         composable(Destination.AlertsScreen.route) {
             AlertsScreen(navController = navController)
+        }
+        composable(Destination.MapScreen.route) {
+            MapsScreen(navController = navController)
         }
     }
 
