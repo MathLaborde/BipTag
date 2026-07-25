@@ -74,6 +74,16 @@ fun createTypography(colorScheme: ColorScheme) = Typography(
         color = colorScheme.onBackground
     ),
 
+
+    titleSmall = TextStyle(
+        fontFamily = interFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.15.sp,
+        color = colorScheme.onBackground
+    ),
+
     // O texto comum do dia a dia (ex: Nome do item nas listas, valor de um card)
     bodyLarge = TextStyle(
         fontFamily = interFamily,
