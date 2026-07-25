@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import br.com.biptag.screens.AlertsScreen
 import br.com.biptag.screens.BindTagScreen
+import br.com.biptag.screens.ConfirmationScreen
 import br.com.biptag.screens.CreditsScreen
 import br.com.biptag.screens.EditItemScreen
 import br.com.biptag.screens.InitialScreen
@@ -101,6 +102,15 @@ fun NavigationRoutes() {
         }
         composable(Destination.LostItemScreen.route) {
             LostItemScreen(navController = navController)
+        }
+        composable(
+            route = Destination.ConfirmationScreen.route,
+            arguments = listOf(navArgument("alertId") {
+                type = NavType.IntType
+            })
+        ) { backStackEntry ->
+            val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
+            ConfirmationScreen(navController = navController, alertId = alertId)
         }
     }
 

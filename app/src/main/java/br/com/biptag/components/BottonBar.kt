@@ -49,7 +49,7 @@ fun BottomBar(navController: NavController) {
         BottomNavigationItem(
             "Alertas",
             icon = Icons.Outlined.Notifications,
-            route = "alerts_screen" // Substituir pela rota quando criar
+            route = Destination.AlertsScreen.route
         ),
         BottomNavigationItem(
             "Perfil",

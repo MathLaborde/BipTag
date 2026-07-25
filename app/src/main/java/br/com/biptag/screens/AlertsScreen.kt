@@ -2,6 +2,7 @@ package br.com.biptag.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
@@ -23,6 +24,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.biptag.components.BottomBar
 import br.com.biptag.components.TopBar
+import br.com.biptag.navigation.Destination
 import br.com.biptag.ui.theme.BipTagTheme
 
 @Composable
@@ -58,7 +60,16 @@ fun AlertsScreen(navController: NavController) {
                 title = "Alguém está com seu item!",
                 subtitle = "Notebook Dell · toque para ver",
                 timeText = "agora",
-                isUnread = true
+                isUnread = true,
+                onClick = {
+                    navController.navigate(
+                        Destination.ConfirmationScreen.createRoute(
+                            1
+                        )
+                    )
+
+                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
+                }
             )
 
             AlertCard(
@@ -68,7 +79,15 @@ fun AlertsScreen(navController: NavController) {
                 title = "Item perdido por perto",
                 subtitle = "Bicicleta Caloi vista a 300 m",
                 timeText = "12 min",
-                isUnread = true
+                isUnread = true,
+                onClick = {
+                    navController.navigate(
+                        Destination.ConfirmationScreen.createRoute(
+                            1
+                        )
+                    )
+                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
+                }
             )
 
             Text(
@@ -86,7 +105,15 @@ fun AlertsScreen(navController: NavController) {
                 title = "Etiqueta vinculada",
                 subtitle = "Câmera Canon EOS protegida",
                 timeText = "2 dias",
-                isUnread = false
+                isUnread = false,
+                onClick = {
+                    navController.navigate(
+                        Destination.ConfirmationScreen.createRoute(
+                            1
+                        )
+                    )
+                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
+                }
             )
 
             AlertCard(
@@ -96,7 +123,15 @@ fun AlertsScreen(navController: NavController) {
                 title = "Devolução concluída",
                 subtitle = "Carteira devolvida com sucesso",
                 timeText = "3 dias",
-                isUnread = false
+                isUnread = false,
+                onClick = {
+                    navController.navigate(
+                        Destination.ConfirmationScreen.createRoute(
+                            1
+                        )
+                    )
+                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
+                }
             )
 
             AlertCard(
@@ -106,7 +141,15 @@ fun AlertsScreen(navController: NavController) {
                 title = "Alerta encerrado",
                 subtitle = "Notebook Dell localizado",
                 timeText = "5 dias",
-                isUnread = false
+                isUnread = false,
+                onClick = {
+                    navController.navigate(
+                        Destination.ConfirmationScreen.createRoute(
+                            1
+                        )
+                    )
+                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
+                }
             )
         }
     }
@@ -120,17 +163,18 @@ fun AlertCard(
     title: String,
     subtitle: String,
     timeText: String,
-    isUnread: Boolean
+    isUnread: Boolean,
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
-        
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Row(
             modifier = Modifier

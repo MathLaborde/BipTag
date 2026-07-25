@@ -5,7 +5,6 @@ sealed class Destination(val route: String){
     object InitialScreen : Destination("inital")
     object LoginScreen : Destination("login")
     object SignUpScreen : Destination("signup")
-
     object InventoryScreen : Destination("inventory")
     object CreditsScreen : Destination("credits")
     object InventoryFormScreen : Destination("inventory_form")
@@ -24,18 +23,18 @@ sealed class Destination(val route: String){
             return "edit_item_screen/$itemId"
         }
     }
-
     object ReportItemScreen : Destination("report_item/{itemId}") {
         fun createRoute(itemId: Int): String {
           return "report_item/$itemId"
         }
     }
-
     object ProfileScreen : Destination("profile")
-
     object AlertsScreen : Destination("alerts")
-
     object MapScreen : Destination("map_screen")
-
     object LostItemScreen : Destination("lost_item_screen")
+    object ConfirmationScreen : Destination("confirmation_screen/{alertId}") {
+        fun createRoute(alertId: Int): String {
+            return "confirmation_screen/$alertId"
+        }
+    }
 }
