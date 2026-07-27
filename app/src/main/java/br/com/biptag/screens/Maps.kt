@@ -149,7 +149,8 @@ fun MapsScreen(navController: NavController) {
                     .align(Alignment.BottomCenter)
                     .padding(16.dp),
                 onViewDetailClick = {
-                    navController.navigate(Destination.LostItemScreen.route)
+                    // Substitua o route por uma string passando um ID de teste, como o número 2
+                    navController.navigate("lost_item_screen/2")
                 }
             )
         }

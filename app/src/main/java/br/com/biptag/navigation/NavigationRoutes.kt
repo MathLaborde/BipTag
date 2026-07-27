@@ -100,8 +100,12 @@ fun NavigationRoutes() {
         composable(Destination.MapScreen.route) {
             MapsScreen(navController = navController)
         }
-        composable(Destination.LostItemScreen.route) {
-            LostItemScreen(navController = navController)
+        composable(
+            route = Destination.LostItemScreen.route,
+            arguments = listOf(navArgument("alertId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
+            LostItemScreen(navController = navController, alertId = alertId)
         }
         composable(
             route = Destination.ConfirmationScreen.route,
