@@ -26,11 +26,12 @@
             </intent-filter>
         </activity>
 
-        <!-- Chave de API do Google Maps -->
+        <!-- Chave de API do Google Maps, vocês precisam ir em (LOCAL.PROPERTIES)
+        e colocar a chave api do google maps que mandei pra vcs no whatsapp
+        -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBXTq1xfsH4FSGVj9ag7iBCLj2xbOJ1NtI" />
-
+            android:value="${MAPS_API_KEY}" />
     </application>
 
 </manifest>
