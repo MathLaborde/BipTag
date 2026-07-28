@@ -51,8 +51,8 @@ class MapViewModel(
                     )
                     mockItems.forEach { items[it.id!!] = it }
                     listOf(
-                        Alert(id = 101, itemId = 1, type = "stolen", latitude = -23.56, longitude = -46.65, status = "active"),
-                        Alert(id = 102, itemId = 2, type = "lost", latitude = -23.57, longitude = -46.66, status = "active")
+                        Alert(id = 101, itemId = 1, type = "stolen", lastSeenLat =  -23.56, lastSeenLng = -46.65, status = "active"),
+                        Alert(id = 102, itemId = 2, type = "lost", lastSeenLat = -23.57, lastSeenLng = -46.66, status = "active")
                     )
                 } else {
                     activeAlerts

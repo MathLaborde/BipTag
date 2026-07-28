@@ -100,8 +100,8 @@ fun ReportItemScreen(
                                     val alert = Alert(
                                         itemId = itemId,
                                         type = if (reportType == "Roubado") "stolen" else "lost",
-                                        latitude = -23.5611,
-                                        longitude = -46.6565,
+                                        lastSeenLat = -23.5611,
+                                        lastSeenLng = -46.6565,
                                         status = "active"
                                     )
 
