@@ -1,14 +1,5 @@
-- [x] Configurar rotas de navegação
-    - [x] Adicionar `LostItemScreen` em `Destination.kt`
-    - [x] Registrar `LostItemScreen` em `NavigationRoutes.kt`
-    - [x] Atualizar clique em `Maps.kt` para navegar para a nova tela
-- [x] Criar a tela `LostItem.kt`
-    - [x] Estrutura base com `Scaffold` e `TopBar`
-    - [x] Card de imagem com badge "Perdido há 3h"
-    - [x] Seção de título e categoria
-    - [x] Card de informações do reportador (Marina S.)
-    - [x] Mini mapa com tag de endereço
-    - [x] Seção de descrição
-    - [x] Card de aviso de segurança (escudo)
-    - [x] Botão inferior "Estou com este item"
-- [x] Verificar navegação e UI
+- [x] Ajustar posições dos marcadores em `Maps.kt`
+    - [x] Utilizar alinhamentos periféricos (`TopCenter`, `CenterEnd`, `BottomStart`, `BottomEnd`)
+    - [x] Adicionar destaque visual para o marcador selecionado
+- [x] Verificar integridade no `MapViewModel.kt`
+- [x] Validar compilação e exibição dos marcadores

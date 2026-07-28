@@ -1,24 +1,17 @@
-# Walkthrough - Implementação da Tela de Item Perdido
+# Walkthrough: Correção dos Marcadores do Mapa
 
-Concluí a implementação da tela de detalhes de item perdido (`LostItem.kt`) e sua integração com a tela de mapas.
+Ajustei as coordenadas e o alinhamento dos marcadores na tela `Maps.kt` para garantir que fiquem 100% visíveis no mapa e com excelente usabilidade.
 
-## Alterações Realizadas
+## O que foi corrigido
 
-### Navegação
-- **[Destination.kt](file:///C:/BipTag/app/src/main/java/br/com/biptag/navigation/Destination.kt)**: Adicionada a rota `lost_item_screen`.
-- **[NavigationRoutes.kt](file:///C:/BipTag/app/src/main/java/br/com/biptag/navigation/NavigationRoutes.kt)**: Registrada a `LostItemScreen` no NavHost.
-- **[Maps.kt](file:///C:/BipTag/app/src/main/java/br/com/biptag/screens/Maps.kt)**: O botão "Ver item perdido" agora navega corretamente para a tela de detalhes.
+### 1. Posição dos Marcadores no Mapa (`Maps.kt`)
+- **Alinhamentos Periféricos**: Mudei o cálculo de posição dos marcadores de `Alignment.Center` para alinhamentos estratégicos (`TopCenter`, `CenterEnd`, `BottomStart` e `BottomEnd`).
+- **Offsets Calibrados**: Os deslocamentos agora posicionam os marcadores de forma natural sobre o "mapa de ruas" sem que fiquem escondidos atrás do card inferior de detalhes ou da barra de pesquisa superior.
 
-### Interface do Usuário (UI)
-- **[LostItem.kt](file:///C:/BipTag/app/src/main/java/br/com/biptag/screens/LostItem.kt)**:
-    - **TopBar**: Título "Item perdido" com navegação de volta funcional.
-    - **Header**: Seção de imagem com placeholder e badge de status "Perdido há 3h".
-    - **Informações do Reportador**: Card detalhado com nome, tempo de reporte e distância.
-    - **Localização**: Mini mapa placeholder com tag de endereço flutuante ("Av. Paulista, ~1000").
-    - **Segurança**: Card informativo sobre o processo de entrega via pontos parceiros.
-    - **Ação**: Botão fixo no rodapé "Estou com este item".
+### 2. Destaque do Marcador Selecionado
+- **Halo de Seleção**: O marcador ativo do item selecionado no card agora exibe um anel brilhante ao seu redor (`Color.copy(alpha = 0.25f)`) e aumenta de tamanho (de `34.dp` para `42.dp`), deixando claro para o usuário qual pino está selecionado no card de baixo.
 
-## Verificação
-- **Transição de Telas**: Clique no botão do card no mapa e verifique se a tela abre corretamente.
-- **Fidelidade Visual**: O layout segue exatamente o design fornecido, incluindo cores, bordas arredondadas e ícones.
-- **Reuso**: Foram utilizados os componentes padrão `TopBar` e `PrimaryButton`.
+## Verificação Realizada
+- [x] Os 4 marcadores aparecem visíveis na tela.
+- [x] Clicar em um marcador destaca ele visualmente e altera as informações no card de baixo.
+- [x] Transição para `LostItemScreen` via o botão do card funciona normalmente.

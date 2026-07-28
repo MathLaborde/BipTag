@@ -104,7 +104,13 @@ fun NavigationRoutes() {
             AlertsScreen(navController = navController)
         }
         composable(Destination.MapScreen.route) {
-            MapsScreen(navController = navController)
+            MapsScreen(
+                navController = navController, // Passando o NavController para o BottomBar
+                onItemClick = { itemId ->
+                    val route = Destination.LostItemScreen.route.replace("{alertId}", itemId.toString())
+                    navController.navigate(route)
+                }
+            )
         }
         composable(
             route = Destination.LostItemScreen.route,

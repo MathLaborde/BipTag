@@ -86,4 +86,10 @@ dependencies {
     implementation(libs.ktor.client.android)
     implementation(libs.slf4j.android)
     implementation(libs.ktor.client.content.negotiation)
+
+    // Google Maps
+    implementation("com.google.maps.android:maps-compose:4.3.0")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+
+
 }

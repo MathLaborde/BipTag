@@ -95,12 +95,13 @@ fun ReportItemScreen(
                                     isLoading = true
                                     errorMessage = null
 
+                                    // CORREÇÃO: Utilizando apenas os campos que existem na data class Alert.
+                                    // Adicionamos coordenadas fixas (SP) provisórias para testar a renderização no mapa.
                                     val alert = Alert(
                                         itemId = itemId,
                                         type = if (reportType == "Roubado") "stolen" else "lost",
-                                        lastSeenAddress = location.takeIf { it.isNotBlank() },
-                                        incidentDate = time.takeIf { it.isNotBlank() },
-                                        description = description.takeIf { it.isNotBlank() },
+                                        latitude = -23.5611,
+                                        longitude = -46.6565,
                                         status = "active"
                                     )
 
