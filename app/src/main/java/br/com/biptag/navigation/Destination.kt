@@ -28,6 +28,8 @@ sealed class Destination(val route: String){
           return "report_item/$itemId"
         }
     }
+
+    object AlertIssuedScreen : Destination("alert_issued_screen")
     object ProfileScreen : Destination("profile")
     object AlertsScreen : Destination("alerts")
     object MapScreen : Destination("map_screen")

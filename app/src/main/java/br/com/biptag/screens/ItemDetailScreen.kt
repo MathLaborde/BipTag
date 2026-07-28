@@ -346,7 +346,7 @@ fun RfidActionCard(navController: NavController, item: Item) {
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Tag #${item.tagId}",
+                        text = "Tag ${item.tagId}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.outlineVariant
                     )

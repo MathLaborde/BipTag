@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -142,13 +144,17 @@ fun CreditsContentScreen(modifier: Modifier){
             ) {
                 team.forEach { people ->
                     Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                        ),
                         modifier = Modifier
                             .padding(vertical = 4.dp)
                             .clickable {
                                 val intent =
                                     Intent(Intent.ACTION_VIEW, people.linkedIn.toUri())
                                 context.startActivity(intent)
-                            }
+                            },
+
                     ) {
                         Row (
                             verticalAlignment = Alignment.CenterVertically,
@@ -163,7 +169,7 @@ fun CreditsContentScreen(modifier: Modifier){
                                 imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.secondary
+                                tint = MaterialTheme.colorScheme.onTertiary
                             )
                         }
 

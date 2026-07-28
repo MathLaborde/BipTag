@@ -33,4 +33,13 @@ class AlertRepository {
             null
         }
     }
+
+    suspend fun createAlert(alert: Alert) {
+        try {
+            postgrest.insert(alert)
+        } catch (e: Exception) {
+            Log.e("AlertRepository", "Erro ao criar alerta", e)
+            throw e
+        }
+    }
 }

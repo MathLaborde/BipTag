@@ -2,7 +2,6 @@ package br.com.biptag.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -28,17 +27,30 @@ import androidx.compose.ui.unit.dp
 import br.com.biptag.components.BipTagTextField
 import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
+import br.com.biptag.model.Alert
+import br.com.biptag.repository.AlertRepository
 import br.com.biptag.ui.theme.BipTagTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportItemScreen(
-    onBackClick: () -> Unit = {}, onSubmitClick: () -> Unit = {}
+    itemId: Int,
+    onBackClick: () -> Unit = {},
+    onSuccess: () -> Unit = {}
 ) {
+    val scope = rememberCoroutineScope()
+    val repository = remember { AlertRepository() }
+
     var reportType by remember { mutableStateOf("Roubado") }
     var location by remember { mutableStateOf("") }
     var time by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -57,13 +69,54 @@ fun ReportItemScreen(
                     thickness = 2.dp, color = MaterialTheme.colorScheme.surfaceVariant
                 )
 
+                errorMessage?.let { error ->
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 18.dp, vertical = 8.dp)
+                    )
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 18.dp, vertical = 12.dp)
                 ) {
                     PrimaryButton(
-                        text = "Emitir alerta", onClick = onSubmitClick
+                        text = if (isLoading) "Emitindo..." else "Emitir alerta",
+                        onClick = {
+                            if (isLoading) return@PrimaryButton
+
+                            scope.launch {
+                                try {
+                                    isLoading = true
+                                    errorMessage = null
+
+                                    val alert = Alert(
+                                        itemId = itemId,
+                                        type = if (reportType == "Roubado") "stolen" else "lost",
+                                        lastSeenAddress = location.takeIf { it.isNotBlank() },
+                                        incidentDate = time.takeIf { it.isNotBlank() },
+                                        description = description.takeIf { it.isNotBlank() },
+                                        status = "active"
+                                    )
+
+                                    repository.createAlert(alert)
+
+                                    withContext(Dispatchers.Main) {
+                                        onSuccess()
+                                    }
+
+                                } catch (e: Exception) {
+                                    errorMessage = "Erro ao criar o alerta. Tente novamente."
+                                } finally {
+                                    isLoading = false
+                                }
+                            }
+                        }
                     )
                 }
             }
@@ -249,6 +302,6 @@ fun ReportCustomTextField(
 @Composable
 private fun ReportItemScreenPreview() {
     BipTagTheme {
-        ReportItemScreen()
+        ReportItemScreen(itemId = 1)
     }
 }

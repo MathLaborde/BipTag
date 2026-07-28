@@ -143,7 +143,9 @@ fun BindTagScreen(navController: NavController, itemId: Int) {
                             val itemAtual = repository.getItemById(itemId)
 
                             if (itemAtual != null) {
-                                val itemAtualizado = itemAtual.copy(tagId = "Tag #A4B2-99F0")
+                                val novaTag = gerarTagAleatoria()
+                                val itemAtualizado = itemAtual.copy(tagId = novaTag)
+
                                 repository.updateItem(itemAtualizado)
                             }
 
@@ -174,6 +176,15 @@ fun BindTagScreen(navController: NavController, itemId: Int) {
 
         }
     }
+}
+
+fun gerarTagAleatoria(): String {
+    val caracteres = "0123456789ABCDEF"
+
+    val parte1 = (1..4).map { caracteres.random() }.joinToString("")
+    val parte2 = (1..4).map { caracteres.random() }.joinToString("")
+
+    return "#$parte1-$parte2"
 }
 
 @Preview(

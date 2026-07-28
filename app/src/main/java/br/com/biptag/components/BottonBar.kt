@@ -1,5 +1,6 @@
 package br.com.biptag.components
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GridView
@@ -70,8 +71,7 @@ fun BottomBar(navController: NavController) {
                     strokeWidth = 1.dp.toPx()
                 )
             },
-        containerColor = MaterialTheme.colorScheme.background,
-        tonalElevation = 0.dp
+        containerColor = MaterialTheme.colorScheme.surface,
     ) {
         items.forEach { item ->
 

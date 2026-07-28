@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import br.com.biptag.screens.AlertIssuedScreen
 import br.com.biptag.screens.AlertsScreen
 import br.com.biptag.screens.BindTagScreen
 import br.com.biptag.screens.ConfirmationScreen
@@ -52,6 +53,9 @@ fun NavigationRoutes() {
         composable(Destination.ProfileScreen.route) {
             ProfileScreen(navController)
         }
+        composable(Destination.AlertIssuedScreen.route) {
+            AlertIssuedScreen(navController)
+        }
         // Telas dinâmicas com argumentos
         composable(
             route = Destination.BindTagScreen.route,
@@ -87,11 +91,13 @@ fun NavigationRoutes() {
             val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
 
             ReportItemScreen(
+                itemId = itemId,
                 onBackClick = {
-                     navController.popBackStack()
+                    navController.popBackStack()
                 },
-                onSubmitClick = {}
-
+                onSuccess = {
+                    navController.navigate(Destination.AlertIssuedScreen.route)
+                }
             )
         }
         composable(Destination.AlertsScreen.route) {
