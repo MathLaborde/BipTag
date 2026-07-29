@@ -1,5 +1,11 @@
 package br.com.biptag.screens
 
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,7 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Notes
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.WarningAmber
@@ -33,95 +38,105 @@ import br.com.biptag.ui.theme.BipTagTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.location.Geocoder
+import androidx.compose.ui.platform.LocalContext
+import java.util.Locale
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportItemScreen(
-    itemId: Int,
-    onBackClick: () -> Unit = {},
-    onSuccess: () -> Unit = {}
+    itemId: Int, onBackClick: () -> Unit = {}, onSuccess: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
     val repository = remember { AlertRepository() }
+
+    val context = LocalContext.current
+    val geocoder = remember { Geocoder(context, Locale.getDefault()) }
 
     var reportType by remember { mutableStateOf("Roubado") }
     var location by remember { mutableStateOf("") }
     var time by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
+    var selectedLocation by remember { mutableStateOf(LatLng(-23.5611, -46.6565)) }
+
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(selectedLocation, 15f)
+    }
+
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
-            TopBar(
-                title = "Reportar item",
-                startIcon = Icons.AutoMirrored.Filled.ArrowBack,
-                onClick = onBackClick
+        TopBar(
+            title = "Reportar item",
+            startIcon = Icons.AutoMirrored.Filled.ArrowBack,
+            onClick = onBackClick
+        )
+    }, bottomBar = {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
+                .navigationBarsPadding()
+        ) {
+            HorizontalDivider(
+                thickness = 2.dp, color = MaterialTheme.colorScheme.surfaceVariant
             )
-        }, bottomBar = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
-            ) {
-                HorizontalDivider(
-                    thickness = 2.dp, color = MaterialTheme.colorScheme.surfaceVariant
-                )
 
-                errorMessage?.let { error ->
-                    Text(
-                        text = error,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 18.dp, vertical = 8.dp)
-                    )
-                }
-
-                Box(
+            errorMessage?.let { error ->
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 18.dp, vertical = 12.dp)
-                ) {
-                    PrimaryButton(
-                        text = if (isLoading) "Emitindo..." else "Emitir alerta",
-                        onClick = {
-                            if (isLoading) return@PrimaryButton
+                        .padding(horizontal = 18.dp, vertical = 8.dp)
 
-                            scope.launch {
-                                try {
-                                    isLoading = true
-                                    errorMessage = null
+                )
+            }
 
-                                    // CORREÇÃO: Utilizando apenas os campos que existem na data class Alert.
-                                    // Adicionamos coordenadas fixas (SP) provisórias para testar a renderização no mapa.
-                                    val alert = Alert(
-                                        itemId = itemId,
-                                        type = if (reportType == "Roubado") "stolen" else "lost",
-                                        lastSeenLat = -23.5611,
-                                        lastSeenLng = -46.6565,
-                                        status = "active"
-                                    )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 18.dp, end = 18.dp, top = 12.dp, bottom = 24.dp)
+            ) {
+                PrimaryButton(
+                    text = if (isLoading) "Emitindo..." else "Emitir alerta", onClick = {
+                        if (isLoading) return@PrimaryButton
 
-                                    repository.createAlert(alert)
+                        scope.launch {
+                            try {
+                                isLoading = true
+                                errorMessage = null
 
-                                    withContext(Dispatchers.Main) {
-                                        onSuccess()
-                                    }
+                                val alert = Alert(
+                                    itemId = itemId,
+                                    type = if (reportType == "Roubado") "stolen" else "lost",
+                                    lastSeenLat = selectedLocation.latitude,
+                                    lastSeenLng = selectedLocation.longitude,
+                                    incidentDate = java.time.Instant.now().toString(),
+                                    status = "active"
+                                )
 
-                                } catch (e: Exception) {
-                                    errorMessage = "Erro ao criar o alerta. Tente novamente."
-                                } finally {
-                                    isLoading = false
+                                repository.createAlert(alert)
+
+                                withContext(Dispatchers.Main) {
+                                    onSuccess()
                                 }
+
+                            } catch (e: Exception) {
+                                errorMessage = "Erro ao criar o alerta. Tente novamente."
+                            } finally {
+                                isLoading = false
                             }
                         }
-                    )
-                }
+                    })
             }
-        }, containerColor = MaterialTheme.colorScheme.background
+        }
+    }, containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -189,17 +204,36 @@ fun ReportItemScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
+                    .height(200.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Filled.LocationOn,
-                    contentDescription = "Pino do mapa",
-                    tint = Color(0xFFD32F2F),
-                    modifier = Modifier.size(32.dp)
-                )
+                GoogleMap(
+                    modifier = Modifier.fillMaxSize(),
+                    cameraPositionState = cameraPositionState,
+                    onMapClick = { latLng ->
+                        selectedLocation = latLng
+
+                        scope.launch(Dispatchers.IO) {
+                            try {
+                                val addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
+                                if (!addresses.isNullOrEmpty()) {
+                                    val addressText = addresses[0].getAddressLine(0) ?: ""
+
+                                    withContext(Dispatchers.Main) {
+                                        location = addressText
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+                ) {
+                    Marker(
+                        state = MarkerState(position = selectedLocation),
+                        title = "Local do ocorrido"
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -282,19 +316,19 @@ fun ReportCustomTextField(
 
         BipTagTextField(
             value = value, onValueChange = onValueChange, placeholder = {
-                Text(
-                    text = placeholder,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                )
-            }, leadingIcon = {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = if (!singleLine) Modifier.padding(bottom = 45.dp) else Modifier
-                )
-            }, singleLine = singleLine, modifier = modifier
+            Text(
+                text = placeholder,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+            )
+        }, leadingIcon = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = if (!singleLine) Modifier.padding(bottom = 45.dp) else Modifier
+            )
+        }, singleLine = singleLine, modifier = modifier
         )
     }
 }

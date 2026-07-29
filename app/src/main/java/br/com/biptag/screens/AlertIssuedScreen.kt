@@ -3,6 +3,7 @@ package br.com.biptag.screens
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material.icons.outlined.Sensors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -73,38 +75,31 @@ fun AlertIssuedScreen(navController: NavController) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(horizontal = 16.dp, vertical = 10.dp)
                 ) {
                     PrimaryButton(
                         text = "Ver no mapa",
-                        onClick = { /* Navegar para o mapa */ }
+                        onClick = { navController.navigate(Destination.MapScreen.route) }
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
 
-                    OutlinedButton(
+                    PrimaryButton(
+                        text = "Voltar ao início",
                         onClick = {
-                            navController.navigate(Destination.AlertsScreen.route) {
-                                popUpTo(0)
-                            }
+                            navController.navigate(Destination.InventoryScreen.route)
                         },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
-                    ) {
-                        Text(
-                            text = "Voltar ao início",
-                            color = MaterialTheme.colorScheme.primary, // Azul escuro do tema
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold
+                        containerColor = MaterialTheme.colorScheme.onTertiary,
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline,
+                            shape = RoundedCornerShape(14.dp)
                         )
-                    }
+                    )
                 }
             }
-        },
-        containerColor = Color(0xFFF7F9FA)
+        }
     ) { paddingValues ->
         ContentAlertIssuedScreen(
             modifier = Modifier.padding(paddingValues)
@@ -200,7 +195,7 @@ fun ContentAlertIssuedScreen(modifier: Modifier) {
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
         ) {
             Column(
-                modifier = Modifier.padding(20.dp)
+                modifier = Modifier.padding(12.dp)
             ) {
                 Text(
                     text = "O que acontece agora",
@@ -283,7 +278,7 @@ fun TimelineStep(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp),
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.Top
     ) {
 
@@ -313,7 +308,7 @@ fun TimelineStep(
             }
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
         Column {
             Text(

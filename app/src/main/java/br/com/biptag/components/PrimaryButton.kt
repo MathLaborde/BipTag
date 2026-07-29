@@ -53,7 +53,7 @@ fun PrimaryButton(
         Text(
             text = text,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = contentColor,
             fontWeight = FontWeight.SemiBold,
         )
     }
