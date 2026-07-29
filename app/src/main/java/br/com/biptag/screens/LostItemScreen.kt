@@ -18,21 +18,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
 import br.com.biptag.model.Alert
+import br.com.biptag.model.Category
 import br.com.biptag.model.Item
 import br.com.biptag.navigation.Destination
 import br.com.biptag.repository.AlertRepository
+import br.com.biptag.repository.AuthRepository
 import br.com.biptag.repository.ItemRepository
+import coil.compose.AsyncImage
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 
+//(Responsável por Navegação e Banco de Dados)
 @Composable
 fun LostItemScreen(navController: NavController, alertId: Int) {
     val alertRepository = remember { AlertRepository() }
@@ -40,6 +46,7 @@ fun LostItemScreen(navController: NavController, alertId: Int) {
 
     var alert by remember { mutableStateOf<Alert?>(null) }
     var item by remember { mutableStateOf<Item?>(null) }
+    var ownerName by remember { mutableStateOf("Buscando...") }
     var isLoading by remember { mutableStateOf(true) }
 
     val cameraPositionState = rememberCameraPositionState {
@@ -48,54 +55,71 @@ fun LostItemScreen(navController: NavController, alertId: Int) {
 
     LaunchedEffect(alertId) {
         isLoading = true
+        try {
+            val fetchedAlert = alertRepository.getAlertById(alertId)
+            alert = fetchedAlert
 
-        // Verifica se é um dos nossos itens fictícios de apresentação
-        if (alertId == 9991 || alertId == 9992) {
-            if (alertId == 9991) {
-                alert = Alert(id = 9991, itemId = 9991, type = "lost", lastSeenLat = -23.5611, lastSeenLng = -46.6565, status = "active")
-                item = Item(id = 9991, name = "Bicicleta Caloi", description = "Quadro azul, aro 29, adesivo na traseira.", category = 1, status = "lost")
-            } else {
-                alert = Alert(id = 9992, itemId = 9992, type = "lost", lastSeenLat = -23.5585, lastSeenLng = -46.6580, status = "active")
-                item = Item(id = 9992, name = "Mochila Azul", description = "Mochila escolar azul escura.", category = 2, status = "lost")
-            }
-
-            val position = LatLng(alert?.lastSeenLat ?: 0.0, alert?.lastSeenLng ?: 0.0)
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(position, 15f)
-        } else {
-            // Se não for fictício, busca do banco de dados real (Supabase)
-            alert = alertRepository.getAlertById(alertId)
-            alert?.let {
+            fetchedAlert?.let {
                 val position = LatLng(it.lastSeenLat ?: 0.0, it.lastSeenLng ?: 0.0)
                 cameraPositionState.position = CameraPosition.fromLatLngZoom(position, 15f)
-                item = itemRepository.getItemById(it.itemId)
+
+                val fetchedItem = itemRepository.getItemById(it.itemId)
+                item = fetchedItem
+
+                ownerName = "João da Silva"
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            isLoading = false
         }
-        isLoading = false
     }
 
-    Scaffold(
-        topBar = {
-            TopBar(
-                title = "Detalhes do Alerta",
-                startIcon = Icons.AutoMirrored.Outlined.ArrowBack,
-                onClick = { navController.popBackStack() }
+    LostItemContent(
+        alert = alert,
+        item = item,
+        ownerName = ownerName,
+        isLoading = isLoading,
+        cameraPositionState = cameraPositionState,
+        onBackClick = { navController.popBackStack() },
+        onConfirmClick = {
+            navController.navigate(
+                Destination.ConfirmationScreen.route.replace(
+                    "{alertId}", alertId.toString()
+                )
             )
-        },
-        bottomBar = {
-            Surface(color = MaterialTheme.colorScheme.background, shadowElevation = 8.dp) {
-                Box(modifier = Modifier.padding(16.dp)) {
-                    PrimaryButton(
-                        text = "Estou com este item",
-                        onClick = {
-                            navController.navigate(Destination.ConfirmationScreen.route.replace("{alertId}", alertId.toString()))
-                        },
-                        containerColor = Color(0xFF233540),
-                        contentColor = Color.White
-                    )
-                }
+        })
+}
+
+//(Responsável apenas por desenhar a tela)
+@Composable
+fun LostItemContent(
+    alert: Alert?,
+    item: Item?,
+    ownerName: String,
+    isLoading: Boolean,
+    cameraPositionState: CameraPositionState,
+    onBackClick: () -> Unit,
+    onConfirmClick: () -> Unit
+) {
+    Scaffold(topBar = {
+        TopBar(
+            title = "Detalhes do Alerta",
+            startIcon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onClick = onBackClick
+        )
+    }, bottomBar = {
+        Surface(color = MaterialTheme.colorScheme.background, shadowElevation = 8.dp) {
+            Box(modifier = Modifier.padding(16.dp)) {
+                PrimaryButton(
+                    text = "Estou com este item",
+                    onClick = onConfirmClick,
+                    containerColor = Color(0xFF233540),
+                    contentColor = Color.White
+                )
             }
         }
-    ) { paddingValues ->
+    }) { paddingValues ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = Color(0xFF629EB0))
@@ -111,22 +135,41 @@ fun LostItemScreen(navController: NavController, alertId: Int) {
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 1. Placeholder da Imagem
                 Box(
-                    modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(16.dp)).background(Color(0xFFEEF5F8))
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFFEEF5F8))
                 ) {
-                    Column(
-                        modifier = Modifier.align(Alignment.Center),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Box(
-                            modifier = Modifier.size(56.dp).background(Color.White, CircleShape),
-                            contentAlignment = Alignment.Center
+                    if (!item?.image.isNullOrEmpty()) {
+                        // Se tiver imagem, carrega com Coil
+                        AsyncImage(
+                            model = item?.image,
+                            contentDescription = "Foto de ${item?.name}",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Column(
+                            modifier = Modifier.align(Alignment.Center),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(Icons.Outlined.Image, contentDescription = "Foto do item", tint = Color.Gray)
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .background(Color.White, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Image,
+                                    contentDescription = "Foto do item",
+                                    tint = Color.Gray
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Sem foto", color = Color.Gray, fontSize = 14.sp)
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Foto do item", color = Color.Gray, fontSize = 14.sp)
                     }
 
                     Text(
@@ -134,11 +177,14 @@ fun LostItemScreen(navController: NavController, alertId: Int) {
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp,
-                        modifier = Modifier.align(Alignment.TopEnd).padding(16.dp).background(Color(0xFFD32F2F), RoundedCornerShape(8.dp)).padding(horizontal = 12.dp, vertical = 6.dp)
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                            .background(Color(0xFFD32F2F), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
                     )
                 }
 
-                // 2. Título Dinâmico
                 Column {
                     Text(
                         text = item?.name ?: "Item Desconhecido",
@@ -146,36 +192,71 @@ fun LostItemScreen(navController: NavController, alertId: Int) {
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1B2A36)
                     )
+
+                    val categoryText = item?.categoryData?.name ?: "Categoria desconhecida"
+
+                    Text(
+                        text = categoryText,
+                        fontSize = 14.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
                 }
 
-                // 3. Card do Usuário (Para o futuro pode ser puxado do Auth/User)
                 Surface(
-                    shape = RoundedCornerShape(16.dp), color = Color.White, border = BorderStroke(1.dp, Color(0xFFE0E0E0)), modifier = Modifier.fillMaxWidth()
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White,
+                    border = BorderStroke(1.dp, Color(0xFFE0E0E0)),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Box(
-                            modifier = Modifier.size(48.dp).background(Color(0xFFEEF5F8), CircleShape),
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(Color(0xFFEEF5F8), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Outlined.Person, contentDescription = null, tint = Color(0xFF233540))
+                            Icon(
+                                Icons.Outlined.Person,
+                                contentDescription = null,
+                                tint = Color(0xFF233540)
+                            )
                         }
                         Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Dono do item", fontWeight = FontWeight.Bold, color = Color(0xFF1B2A36))
-                            Text("Informação protegida", fontSize = 12.sp, color = Color.Gray)
+                        Column() {
+                            Text(
+                                text = ownerName,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            Text(
+                                text = "Informação protegida",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.outlineVariant
+                            )
                         }
                     }
                 }
 
-                // 4. Mini Mapa Dinâmico
                 Surface(
-                    shape = RoundedCornerShape(16.dp), color = Color.White, modifier = Modifier.fillMaxWidth().height(140.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp)
                 ) {
                     Box {
                         GoogleMap(
                             modifier = Modifier.fillMaxSize(),
                             cameraPositionState = cameraPositionState,
-                            uiSettings = MapUiSettings(scrollGesturesEnabled = false, zoomGesturesEnabled = false, zoomControlsEnabled = false)
+                            uiSettings = MapUiSettings(
+                                scrollGesturesEnabled = false,
+                                zoomGesturesEnabled = false,
+                                zoomControlsEnabled = false
+                            )
                         ) {
                             alert?.let {
                                 val position = LatLng(it.lastSeenLat ?: 0.0, it.lastSeenLng ?: 0.0)
@@ -185,32 +266,46 @@ fun LostItemScreen(navController: NavController, alertId: Int) {
                     }
                 }
 
-                // 5. Card de Descrição Dinâmico
                 Surface(
-                    shape = RoundedCornerShape(16.dp), color = Color.White, border = BorderStroke(1.dp, Color(0xFFE0E0E0)), modifier = Modifier.fillMaxWidth()
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White,
+                    border = BorderStroke(1.dp, Color(0xFFE0E0E0)),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Descrição", fontSize = 12.sp, color = Color.Gray)
-                        Spacer(modifier = Modifier.height(4.dp))
+                    Column(modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp)) {
                         Text(
-                            text = item?.description ?: "Nenhuma descrição fornecida.",
-                            color = Color(0xFF1B2A36),
-                            fontSize = 14.sp
+                            "Descrição",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                        Text(
+                            text = item?.description
+                                ?: "O dono não forneceu detalhes adicionais sobre este item.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
 
-                // 6. Aviso de Segurança (Fixo)
                 Surface(
-                    shape = RoundedCornerShape(12.dp), color = Color(0xFFEEF5F8), modifier = Modifier.fillMaxWidth()
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.Shield, contentDescription = null, tint = Color(0xFF629EB0))
-                        Spacer(modifier = Modifier.width(12.dp))
+                    Row(
+                        modifier = Modifier.padding(vertical = 12.dp, horizontal = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Outlined.Shield,
+                            contentDescription = null,
+                            tint = Color(0xFF629EB0)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "A entrega é combinada por ponto parceiro ou motoboy. Não compartilhe dados pessoais.",
-                            fontSize = 12.sp,
-                            color = Color.Gray
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.outlineVariant
                         )
                     }
                 }

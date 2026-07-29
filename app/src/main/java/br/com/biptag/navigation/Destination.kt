@@ -32,7 +32,7 @@ sealed class Destination(val route: String){
     object AlertIssuedScreen : Destination("alert_issued_screen")
     object ProfileScreen : Destination("profile")
     object AlertsScreen : Destination("alerts")
-    object MapScreen : Destination("map_screen")
+    object MapsScreen : Destination("map_screen")
     object LostItemScreen : Destination("lost_item_screen/{alertId}") {
         fun createRoute(alertId: Int): String {
             return "lost_item_screen/$alertId"

@@ -79,7 +79,7 @@ fun AlertIssuedScreen(navController: NavController) {
                 ) {
                     PrimaryButton(
                         text = "Ver no mapa",
-                        onClick = { navController.navigate(Destination.MapScreen.route) }
+                        onClick = { navController.navigate(Destination.MapsScreen.route) }
                     )
 
                     Spacer(modifier = Modifier.height(6.dp))
