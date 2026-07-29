@@ -2,9 +2,9 @@ package br.com.biptag.screens
 
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
+import android.location.Address
+import android.location.Geocoder
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,24 +20,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatAlignLeft
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.ShortText
-import androidx.compose.material.icons.filled.FormatAlignLeft
-import androidx.compose.material.icons.filled.ShortText
-import androidx.compose.material.icons.filled.ViewHeadline
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.PhotoCamera
-import androidx.compose.material.icons.outlined.ShortText
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
@@ -48,8 +43,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -60,6 +53,7 @@ import androidx.compose.material3.TimePickerDisplayMode
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,7 +61,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
@@ -77,19 +70,27 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import br.com.biptag.R
 import br.com.biptag.components.BipTagTextField
-import br.com.biptag.components.BottomBar
 import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
 import br.com.biptag.ui.theme.BipTagTheme
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -97,6 +98,7 @@ import java.util.Locale
 @Composable
 fun ConfirmationScreen(navController: NavController, alertId: Int) {
     Scaffold(
+        modifier = Modifier.imePadding(),
         topBar = {
             TopBar(
                 title = "Confirmar Item",
@@ -111,7 +113,7 @@ fun ConfirmationScreen(navController: NavController, alertId: Int) {
                 modifier = Modifier.padding(16.dp),
                 text = "Avisar o dono",
                 onClick = {
-                    // TODO função para salvar confirmação do Item
+                    // TODO: Implementar salvamento
                 },
             )
         }
@@ -123,8 +125,18 @@ fun ConfirmationScreen(navController: NavController, alertId: Int) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val geocoder = remember { Geocoder(context, Locale.getDefault()) }
 
     var foundAddress by remember { mutableStateOf("") }
+    var suggestions by remember { mutableStateOf<List<Address>>(emptyList()) }
+    var markerPosition by remember { mutableStateOf<LatLng?>(null) }
+
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(LatLng(-23.5611, -46.6565), 15f)
+    }
+
     var foundDateTime by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var isAnonymous by remember { mutableStateOf(false) }
@@ -136,31 +148,38 @@ fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) 
     val formatterDate = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
 
     val datePickerState = rememberDatePickerState()
-
     val timePickerState = rememberTimePickerState()
 
-    var itemImage by remember {
-        mutableStateOf<Bitmap?>(null)
-    }
-
-    val context = LocalContext.current
+    var itemImage by remember { mutableStateOf<Bitmap?>(null) }
 
     val launchImage = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
-            if (Build.VERSION.SDK_INT < 28) {
-                itemImage = MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-            } else {
-                val source = ImageDecoder.createSource(context.contentResolver, uri)
-                itemImage = ImageDecoder.decodeBitmap(source)
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            itemImage = ImageDecoder.decodeBitmap(source)
+        }
+    }
+
+    LaunchedEffect(foundAddress) {
+        if (foundAddress.length > 5 && suggestions.none { it.getAddressLine(0) == foundAddress }) {
+            delay(800)
+
+            withContext(Dispatchers.IO) {
+                try {
+                    val results = geocoder.getFromLocationName(foundAddress, 5)
+                    if (results != null) suggestions = results
+                } catch (e: Exception) { e.printStackTrace() }
             }
+        } else if (foundAddress.isEmpty()) {
+            suggestions = emptyList()
         }
     }
 
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
         Text(
@@ -173,41 +192,78 @@ fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) 
 
         Text(
             text = "Onde você encontrou",
-            modifier = Modifier.padding(bottom = 8.dp),
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.outlineVariant
-        )
-        BipTagTextField(
-            value = foundAddress,
-            onValueChange = { foundAddress = it },
-            placeholder = {
-                Text(
-                    text = "Parque Ibirapuera - portão 9",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 15.sp
-                )
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector =  Icons.Outlined.LocationOn,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
+            color = MaterialTheme.colorScheme.outlineVariant,
+            modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        // TODO Fazer integração do endereço.
+        Box {
+            Column {
+                BipTagTextField(
+                    value = foundAddress,
+                    onValueChange = { foundAddress = it },
+                    placeholder = { Text("Ex: Parque Ibirapuera - portão 9", color = Color.Gray, fontSize = 15.sp) },
+                    leadingIcon = { Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = Color.Gray) },
+                )
+
+                if (suggestions.isNotEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        elevation = CardDefaults.cardElevation(4.dp),
+                        colors = CardColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.secondary,
+                            disabledContainerColor = MaterialTheme.colorScheme.secondary,
+                            disabledContentColor = MaterialTheme.colorScheme.secondary
+                        ),
+                    ) {
+                        suggestions.forEach { address ->
+                            val addressLine = address.getAddressLine(0)
+                            Text(
+                                text = addressLine,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        foundAddress = addressLine
+                                        suggestions = emptyList()
+                                        val latLng = LatLng(address.latitude, address.longitude)
+                                        markerPosition = latLng
+                                        coroutineScope.launch {
+                                            cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                                        }
+                                    }
+                                    .padding(12.dp),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
+            }
+        }
 
         Spacer(Modifier.size(16.dp))
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(72.dp)
-                .background(color = Color(140, 0, 0))
-        )
-
-        // TODO Fazer a Integração com o Mapa
+        GoogleMap(
+            modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(16.dp)),
+            cameraPositionState = cameraPositionState,
+            onMapClick = { latLng ->
+                markerPosition = latLng
+                coroutineScope.launch {
+                    withContext(Dispatchers.IO) {
+                        try {
+                            val results = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
+                            if (!results.isNullOrEmpty()) {
+                                foundAddress = results[0].getAddressLine(0)
+                                suggestions = emptyList()
+                            }
+                        } catch (e: Exception) { e.printStackTrace() }
+                    }
+                }
+            },
+            uiSettings = MapUiSettings(zoomControlsEnabled = false)
+        ) {
+            markerPosition?.let { Marker(state = MarkerState(position = it)) }
+        }
 
         Spacer(Modifier.size(16.dp))
 
@@ -328,6 +384,8 @@ fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) 
             profileImage = itemImage,
             launchImage = launchImage
         )
+
+        // TODO modificar o tamanho do componente da imagem para quando tiver imagem ficar maior e quando não tiver ficar o campo pequeno
 
         Spacer(Modifier.size(16.dp))
 
