@@ -5,6 +5,7 @@ import android.graphics.ImageDecoder
 import android.location.Address
 import android.location.Geocoder
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -78,6 +79,11 @@ import androidx.navigation.compose.rememberNavController
 import br.com.biptag.components.BipTagTextField
 import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
+import br.com.biptag.model.FoundReport
+import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.AlertRepository
+import br.com.biptag.repository.AuthRepository
+import br.com.biptag.repository.FoundReportRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -97,6 +103,22 @@ import java.util.Locale
 
 @Composable
 fun ConfirmationScreen(navController: NavController, alertId: Int) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    val foundReportRepository = remember { FoundReportRepository() }
+    val authRepository = remember { AuthRepository() }
+    val alertRepository = remember { AlertRepository() }
+
+    var isLoading by remember { mutableStateOf(false) }
+
+    var foundAddress by remember { mutableStateOf("") }
+    var markerPosition by remember { mutableStateOf<LatLng?>(null) }
+    var foundDateTime by remember { mutableStateOf("") }
+    var notes by remember { mutableStateOf("") }
+    var isAnonymous by remember { mutableStateOf(false) }
+    var itemImage by remember { mutableStateOf<Bitmap?>(null) }
+
     Scaffold(
         modifier = Modifier.imePadding(),
         topBar = {
@@ -111,35 +133,120 @@ fun ConfirmationScreen(navController: NavController, alertId: Int) {
         bottomBar = {
             PrimaryButton(
                 modifier = Modifier.padding(16.dp),
-                text = "Avisar o dono",
+                text = if (isLoading) "Enviando..." else "Avisar o dono",
+                enabled = !isLoading,
                 onClick = {
-                    // TODO: Implementar salvamento
+                    coroutineScope.launch {
+                        isLoading = true
+                        try {
+                            val currentUser = authRepository.getCurrentUser()
+                            val alert = alertRepository.getAlertById(alertId)
+
+                            if (currentUser != null && alert != null) {
+
+                                val dateForDatabase = try {
+                                    val parser = java.text.SimpleDateFormat(
+                                        "dd/MM/yyyy hh:mm a",
+                                        java.util.Locale.getDefault()
+                                    )
+                                    val dbFormatter = java.text.SimpleDateFormat(
+                                        "yyyy-MM-dd HH:mm:ss",
+                                        java.util.Locale.getDefault()
+                                    )
+                                    val parsedDate = parser.parse(foundDateTime)
+                                    if (parsedDate != null) dbFormatter.format(parsedDate) else foundDateTime
+                                } catch (e: Exception) {
+                                    foundDateTime
+                                }
+
+                                val report = FoundReport(
+                                    itemId = alert.itemId,
+                                    finderId = currentUser.id,
+                                    foundLat = markerPosition?.latitude ?: 0.0,
+                                    foundLng = markerPosition?.longitude ?: 0.0,
+                                    foundAddress = foundAddress,
+                                    foundDate = dateForDatabase,
+                                    notes = notes,
+                                    isAnonymous = isAnonymous
+                                )
+
+                                val result = foundReportRepository.createFoundReport(report)
+
+                                if (result != null) {
+                                    Toast.makeText(
+                                        context,
+                                        "Dono avisado! Muito obrigado.",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    navController.navigate(Destination.MapsScreen.route) {
+                                        popUpTo(Destination.MapsScreen.route) { inclusive = true }
+                                    }
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Erro ao enviar aviso. Tente novamente.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Toast.makeText(
+                                context,
+                                "Erro na conexão. Verifique sua internet.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } finally {
+                            isLoading = false
+                        }
+                    }
                 },
             )
         }
     ) { paddingValues ->
-        ContentConfirmationScreen(navController = navController, modifier = Modifier.padding(paddingValues))
+        ContentConfirmationScreen(
+            modifier = Modifier.padding(paddingValues),
+            foundAddress = foundAddress,
+            onFoundAddressChange = { foundAddress = it },
+            markerPosition = markerPosition,
+            onMarkerPositionChange = { markerPosition = it },
+            foundDateTime = foundDateTime,
+            onFoundDateTimeChange = { foundDateTime = it },
+            notes = notes,
+            onNotesChange = { notes = it },
+            isAnonymous = isAnonymous,
+            onAnonymousChange = { isAnonymous = it },
+            itemImage = itemImage,
+            onItemImageChange = { itemImage = it }
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) {
+fun ContentConfirmationScreen(
+    modifier: Modifier,
+    foundAddress: String,
+    onFoundAddressChange: (String) -> Unit,
+    markerPosition: LatLng?,
+    onMarkerPositionChange: (LatLng?) -> Unit,
+    foundDateTime: String,
+    onFoundDateTimeChange: (String) -> Unit,
+    notes: String,
+    onNotesChange: (String) -> Unit,
+    isAnonymous: Boolean,
+    onAnonymousChange: (Boolean) -> Unit,
+    itemImage: Bitmap?,
+    onItemImageChange: (Bitmap?) -> Unit
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val geocoder = remember { Geocoder(context, Locale.getDefault()) }
 
-    var foundAddress by remember { mutableStateOf("") }
     var suggestions by remember { mutableStateOf<List<Address>>(emptyList()) }
-    var markerPosition by remember { mutableStateOf<LatLng?>(null) }
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(-23.5611, -46.6565), 15f)
     }
-
-    var foundDateTime by remember { mutableStateOf("") }
-    var notes by remember { mutableStateOf("") }
-    var isAnonymous by remember { mutableStateOf(false) }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -150,26 +257,25 @@ fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) 
     val datePickerState = rememberDatePickerState()
     val timePickerState = rememberTimePickerState()
 
-    var itemImage by remember { mutableStateOf<Bitmap?>(null) }
-
     val launchImage = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
             val source = ImageDecoder.createSource(context.contentResolver, uri)
-            itemImage = ImageDecoder.decodeBitmap(source)
+            onItemImageChange(ImageDecoder.decodeBitmap(source))
         }
     }
 
     LaunchedEffect(foundAddress) {
         if (foundAddress.length > 5 && suggestions.none { it.getAddressLine(0) == foundAddress }) {
             delay(800)
-
             withContext(Dispatchers.IO) {
                 try {
                     val results = geocoder.getFromLocationName(foundAddress, 5)
                     if (results != null) suggestions = results
-                } catch (e: Exception) { e.printStackTrace() }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         } else if (foundAddress.isEmpty()) {
             suggestions = emptyList()
@@ -201,14 +307,28 @@ fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) 
             Column {
                 BipTagTextField(
                     value = foundAddress,
-                    onValueChange = { foundAddress = it },
-                    placeholder = { Text("Ex: Parque Ibirapuera - portão 9", color = Color.Gray, fontSize = 15.sp) },
-                    leadingIcon = { Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = Color.Gray) },
+                    onValueChange = onFoundAddressChange,
+                    placeholder = {
+                        Text(
+                            "Ex: Parque Ibirapuera - portão 9",
+                            color = Color.Gray,
+                            fontSize = 15.sp
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Outlined.LocationOn,
+                            contentDescription = null,
+                            tint = Color.Gray
+                        )
+                    },
                 )
 
                 if (suggestions.isNotEmpty()) {
                     Card(
-                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
                         elevation = CardDefaults.cardElevation(4.dp),
                         colors = CardColors(
                             containerColor = MaterialTheme.colorScheme.secondary,
@@ -224,12 +344,17 @@ fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) 
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        foundAddress = addressLine
+                                        onFoundAddressChange(addressLine)
                                         suggestions = emptyList()
                                         val latLng = LatLng(address.latitude, address.longitude)
-                                        markerPosition = latLng
+                                        onMarkerPositionChange(latLng)
                                         coroutineScope.launch {
-                                            cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                                            cameraPositionState.animate(
+                                                CameraUpdateFactory.newLatLngZoom(
+                                                    latLng,
+                                                    15f
+                                                )
+                                            )
                                         }
                                     }
                                     .padding(12.dp),
@@ -244,19 +369,25 @@ fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) 
         Spacer(Modifier.size(16.dp))
 
         GoogleMap(
-            modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(16.dp)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .clip(RoundedCornerShape(16.dp)),
             cameraPositionState = cameraPositionState,
             onMapClick = { latLng ->
-                markerPosition = latLng
+                onMarkerPositionChange(latLng)
                 coroutineScope.launch {
                     withContext(Dispatchers.IO) {
                         try {
-                            val results = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
+                            val results =
+                                geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
                             if (!results.isNullOrEmpty()) {
-                                foundAddress = results[0].getAddressLine(0)
+                                onFoundAddressChange(results[0].getAddressLine(0))
                                 suggestions = emptyList()
                             }
-                        } catch (e: Exception) { e.printStackTrace() }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
                 }
             },
@@ -323,7 +454,7 @@ fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) 
             }
         }
 
-        if (showTimePicker){
+        if (showTimePicker) {
             TimePickerDialog(
                 title = { TimePickerDialogDefaults.Title(displayMode = TimePickerDisplayMode.Picker) },
                 onDismissRequest = { showTimePicker = false },
@@ -335,15 +466,22 @@ fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) 
                             cal.set(Calendar.MINUTE, timePickerState.minute)
                             cal.isLenient = false
 
-                            foundDateTime = formatterDate.format(datePickerState.selectedDateMillis) + " " + formatterHours.format(cal.time)
-
+                            onFoundDateTimeChange(
+                                formatterDate.format(datePickerState.selectedDateMillis) + " " + formatterHours.format(
+                                    cal.time
+                                )
+                            )
                             showTimePicker = false
                         },
                     ) {
                         Text("Ok")
                     }
                 },
-                dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("Cancel") } },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showTimePicker = false
+                    }) { Text("Cancel") }
+                },
                 modeToggleButton = {},
             ) {
                 TimePicker(state = timePickerState)
@@ -360,7 +498,7 @@ fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) 
         )
         BipTagTextField(
             value = notes,
-            onValueChange = { notes = it },
+            onValueChange = onNotesChange,
             placeholder = {
                 Text(
                     text = "Estado do item, como combinar a entrega...  ",
@@ -384,8 +522,6 @@ fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) 
             profileImage = itemImage,
             launchImage = launchImage
         )
-
-        // TODO modificar o tamanho do componente da imagem para quando tiver imagem ficar maior e quando não tiver ficar o campo pequeno
 
         Spacer(Modifier.size(16.dp))
 
@@ -411,7 +547,7 @@ fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) 
                         color = MaterialTheme.colorScheme.outlineVariant
                     )
                 }
-                Switch(checked = isAnonymous, onCheckedChange = { isAnonymous = it })
+                Switch(checked = isAnonymous, onCheckedChange = onAnonymousChange)
             }
         }
 
@@ -450,7 +586,6 @@ fun ContentConfirmationScreen(navController: NavController, modifier: Modifier) 
         }
     }
 }
-
 
 @Composable
 fun UserImageConfirmationScreen(
@@ -492,7 +627,9 @@ fun UserImageConfirmationScreen(
             )
         } else {
             Row(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start
             ) {
