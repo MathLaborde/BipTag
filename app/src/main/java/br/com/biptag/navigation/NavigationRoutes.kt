@@ -22,6 +22,8 @@ import br.com.biptag.screens.MapsScreen
 import br.com.biptag.screens.ProfileScreen
 import br.com.biptag.screens.ReportItemScreen
 import br.com.biptag.screens.SignUpScreen
+import br.com.biptag.screens.ReturnProcessScreen
+import br.com.biptag.screens.CollectionPointsScreen
 
 @Composable
 fun NavigationRoutes() {
@@ -127,6 +129,23 @@ fun NavigationRoutes() {
             val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
             ConfirmationScreen(navController = navController, alertId = alertId)
         }
+        composable(
+            route = Destination.ReturnProcessScreen.route,
+            arguments = listOf(navArgument("itemId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
+            ReturnProcessScreen(navController = navController, itemId = itemId)
+        }
+
+        composable(
+            route = Destination.PartnerPointsScreen.route,
+            arguments = listOf(navArgument("itemId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
+            CollectionPointsScreen(navController = navController, itemId = itemId)
+        }
     }
 
 }
+
+

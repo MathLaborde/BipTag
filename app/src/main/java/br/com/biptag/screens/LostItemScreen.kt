@@ -143,7 +143,6 @@ fun LostItemContent(
                         .background(Color(0xFFEEF5F8))
                 ) {
                     if (!item?.image.isNullOrEmpty()) {
-                        // Se tiver imagem, carrega com Coil
                         AsyncImage(
                             model = item?.image,
                             contentDescription = "Foto de ${item?.name}",

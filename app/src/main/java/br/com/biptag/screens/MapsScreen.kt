@@ -52,12 +52,8 @@ fun MapsScreen(navController: NavController, onItemClick: (Int) -> Unit = {}) {
     }
 
     val coroutineScope = rememberCoroutineScope()
-
-    // Instanciando os Repositories (padrão da equipe)
     val alertRepository = remember { AlertRepository() }
     val itemRepository = remember { ItemRepository() }
-
-    // Estados Locais da Tela
     var mapDataList by remember { mutableStateOf<List<MapAlertData>>(emptyList()) }
     var selectedAlert by remember { mutableStateOf<MapAlertData?>(null) }
     var searchQuery by remember { mutableStateOf("") }
@@ -102,7 +98,6 @@ fun MapsScreen(navController: NavController, onItemClick: (Int) -> Unit = {}) {
                     myLocationButtonEnabled = false
                 )
             ) {
-                // 2. PINOS REAIS DO SUPABASE (ITENS - VERMELHOS)
                 mapDataList.forEach { data ->
                     val position = LatLng(data.alert.lastSeenLat ?: 0.0, data.alert.lastSeenLng ?: 0.0)
                     val isItem = data.item != null
@@ -123,14 +118,10 @@ fun MapsScreen(navController: NavController, onItemClick: (Int) -> Unit = {}) {
                     )
                 }
             }
-
-            // BARRA DE PESQUISA E LEGENDA (Mantido idêntico)
             SearchAndLegendOverlay(
                 searchQuery = searchQuery,
                 onSearchQueryChange = { searchQuery = it }
             )
-
-            // BOTÃO DE CENTRALIZAR
             FloatingActionButton(
                 onClick = {
                     coroutineScope.launch {
@@ -150,8 +141,6 @@ fun MapsScreen(navController: NavController, onItemClick: (Int) -> Unit = {}) {
             ) {
                 Icon(Icons.Default.MyLocation, contentDescription = null, tint = Color(0xFF233540))
             }
-
-            // CARD DO ITEM PERDIDO (Agora com dados reais)
             selectedAlert?.let { data ->
                 AlertDetailsCard(
                     data = data,
