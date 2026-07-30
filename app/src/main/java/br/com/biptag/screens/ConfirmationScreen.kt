@@ -119,90 +119,80 @@ fun ConfirmationScreen(navController: NavController, alertId: Int) {
     var isAnonymous by remember { mutableStateOf(false) }
     var itemImage by remember { mutableStateOf<Bitmap?>(null) }
 
-    Scaffold(
-        modifier = Modifier.imePadding(),
-        topBar = {
-            TopBar(
-                title = "Confirmar Item",
-                startIcon = Icons.AutoMirrored.Outlined.ArrowBack,
-                onClick = {
-                    navController.popBackStack()
-                }
-            )
-        },
-        bottomBar = {
-            PrimaryButton(
-                modifier = Modifier.padding(16.dp),
-                text = if (isLoading) "Enviando..." else "Avisar o dono",
-                enabled = !isLoading,
-                onClick = {
-                    coroutineScope.launch {
-                        isLoading = true
-                        try {
-                            val currentUser = authRepository.getCurrentUser()
-                            val alert = alertRepository.getAlertById(alertId)
+    Scaffold(modifier = Modifier.imePadding(), topBar = {
+        TopBar(
+            title = "Confirmar Item", startIcon = Icons.AutoMirrored.Outlined.ArrowBack, onClick = {
+                navController.popBackStack()
+            })
+    }, bottomBar = {
+        PrimaryButton(
+            modifier = Modifier.padding(16.dp),
+            text = if (isLoading) "Enviando..." else "Avisar o dono",
+            enabled = !isLoading,
+            onClick = {
+                coroutineScope.launch {
+                    isLoading = true
+                    try {
+                        val currentUser = authRepository.getCurrentUser()
+                        val alert = alertRepository.getAlertById(alertId)
 
-                            if (currentUser != null && alert != null) {
+                        if (currentUser != null && alert != null) {
 
-                                val dateForDatabase = try {
-                                    val parser = java.text.SimpleDateFormat(
-                                        "dd/MM/yyyy hh:mm a",
-                                        java.util.Locale.getDefault()
-                                    )
-                                    val dbFormatter = java.text.SimpleDateFormat(
-                                        "yyyy-MM-dd HH:mm:ss",
-                                        java.util.Locale.getDefault()
-                                    )
-                                    val parsedDate = parser.parse(foundDateTime)
-                                    if (parsedDate != null) dbFormatter.format(parsedDate) else foundDateTime
-                                } catch (e: Exception) {
-                                    foundDateTime
-                                }
-
-                                val report = FoundReport(
-                                    itemId = alert.itemId,
-                                    finderId = currentUser.id,
-                                    foundLat = markerPosition?.latitude ?: 0.0,
-                                    foundLng = markerPosition?.longitude ?: 0.0,
-                                    foundAddress = foundAddress,
-                                    foundDate = dateForDatabase,
-                                    notes = notes,
-                                    isAnonymous = isAnonymous
+                            val dateForDatabase = try {
+                                val parser = java.text.SimpleDateFormat(
+                                    "dd/MM/yyyy hh:mm a", java.util.Locale.getDefault()
                                 )
-
-                                val result = foundReportRepository.createFoundReport(report)
-
-                                if (result != null) {
-                                    Toast.makeText(
-                                        context,
-                                        "Dono avisado! Muito obrigado.",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                    navController.navigate(Destination.MapsScreen.route) {
-                                        popUpTo(Destination.MapsScreen.route) { inclusive = true }
-                                    }
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        "Erro ao enviar aviso. Tente novamente.",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
+                                val dbFormatter = java.text.SimpleDateFormat(
+                                    "yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()
+                                )
+                                val parsedDate = parser.parse(foundDateTime)
+                                if (parsedDate != null) dbFormatter.format(parsedDate) else foundDateTime
+                            } catch (e: Exception) {
+                                foundDateTime
                             }
-                        } catch (e: Exception) {
-                            Toast.makeText(
-                                context,
-                                "Erro na conexão. Verifique sua internet.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } finally {
-                            isLoading = false
+
+                            val report = FoundReport(
+                                itemId = alert.itemId,
+                                finderId = currentUser.id,
+                                foundLat = markerPosition?.latitude ?: 0.0,
+                                foundLng = markerPosition?.longitude ?: 0.0,
+                                foundAddress = foundAddress,
+                                foundDate = dateForDatabase,
+                                notes = notes,
+                                isAnonymous = isAnonymous
+                            )
+
+                            val result = foundReportRepository.createFoundReport(report)
+
+                            if (result != null) {
+                                Toast.makeText(
+                                    context, "Dono avisado! Muito obrigado.", Toast.LENGTH_LONG
+                                ).show()
+
+                                val realId = result.id
+
+                                navController.navigate("item_found_screen/$realId") {
+                                    popUpTo(Destination.MapsScreen.route) { inclusive = false }
+                                }
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Erro ao enviar aviso. Tente novamente.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            context, "Erro na conexão. Verifique sua internet.", Toast.LENGTH_SHORT
+                        ).show()
+                    } finally {
+                        isLoading = false
                     }
-                },
-            )
-        }
-    ) { paddingValues ->
+                }
+            },
+        )
+    }) { paddingValues ->
         ContentConfirmationScreen(
             modifier = Modifier.padding(paddingValues),
             foundAddress = foundAddress,
@@ -216,8 +206,7 @@ fun ConfirmationScreen(navController: NavController, alertId: Int) {
             isAnonymous = isAnonymous,
             onAnonymousChange = { isAnonymous = it },
             itemImage = itemImage,
-            onItemImageChange = { itemImage = it }
-        )
+            onItemImageChange = { itemImage = it })
     }
 }
 
@@ -310,16 +299,12 @@ fun ContentConfirmationScreen(
                     onValueChange = onFoundAddressChange,
                     placeholder = {
                         Text(
-                            "Ex: Parque Ibirapuera - portão 9",
-                            color = Color.Gray,
-                            fontSize = 15.sp
+                            "Ex: Parque Ibirapuera - portão 9", color = Color.Gray, fontSize = 15.sp
                         )
                     },
                     leadingIcon = {
                         Icon(
-                            Icons.Outlined.LocationOn,
-                            contentDescription = null,
-                            tint = Color.Gray
+                            Icons.Outlined.LocationOn, contentDescription = null, tint = Color.Gray
                         )
                     },
                 )
@@ -340,8 +325,7 @@ fun ContentConfirmationScreen(
                         suggestions.forEach { address ->
                             val addressLine = address.getAddressLine(0)
                             Text(
-                                text = addressLine,
-                                modifier = Modifier
+                                text = addressLine, modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
                                         onFoundAddressChange(addressLine)
@@ -351,15 +335,12 @@ fun ContentConfirmationScreen(
                                         coroutineScope.launch {
                                             cameraPositionState.animate(
                                                 CameraUpdateFactory.newLatLngZoom(
-                                                    latLng,
-                                                    15f
+                                                    latLng, 15f
                                                 )
                                             )
                                         }
                                     }
-                                    .padding(12.dp),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                                    .padding(12.dp), style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }
@@ -423,33 +404,27 @@ fun ContentConfirmationScreen(
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                }
-            )
+                })
 
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .clickable { showDatePicker = true }
-            )
+                    .clickable { showDatePicker = true })
         }
 
         if (showDatePicker) {
-            DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        showDatePicker = false
-                        showTimePicker = true
-                    }) {
-                        Text("OK")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDatePicker = false }) {
-                        Text("Cancel")
-                    }
+            DatePickerDialog(onDismissRequest = { showDatePicker = false }, confirmButton = {
+                TextButton(onClick = {
+                    showDatePicker = false
+                    showTimePicker = true
+                }) {
+                    Text("OK")
                 }
-            ) {
+            }, dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }) {
                 DatePicker(state = datePickerState)
             }
         }
@@ -497,30 +472,25 @@ fun ContentConfirmationScreen(
             color = MaterialTheme.colorScheme.outlineVariant
         )
         BipTagTextField(
-            value = notes,
-            onValueChange = onNotesChange,
-            placeholder = {
+            value = notes, onValueChange = onNotesChange, placeholder = {
                 Text(
                     text = "Estado do item, como combinar a entrega...  ",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 15.sp
                 )
-            },
-            leadingIcon = {
+            }, leadingIcon = {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.FormatAlignLeft,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            },
-            singleLine = false
+            }, singleLine = false
         )
 
         Spacer(Modifier.size(16.dp))
 
         UserImageConfirmationScreen(
-            profileImage = itemImage,
-            launchImage = launchImage
+            profileImage = itemImage, launchImage = launchImage
         )
 
         Spacer(Modifier.size(16.dp))
@@ -538,8 +508,7 @@ fun ContentConfirmationScreen(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Avisar sem mostrar meu nome",
-                        style = MaterialTheme.typography.titleSmall
+                        "Avisar sem mostrar meu nome", style = MaterialTheme.typography.titleSmall
                     )
                     Text(
                         "Sua identidade fica protegida",
@@ -589,14 +558,12 @@ fun ContentConfirmationScreen(
 
 @Composable
 fun UserImageConfirmationScreen(
-    profileImage: Bitmap?,
-    launchImage: ManagedActivityResultLauncher<String, Uri?>
+    profileImage: Bitmap?, launchImage: ManagedActivityResultLauncher<String, Uri?>
 ) {
     val dashColor = Color(0xFF9FC6DA)
     val stroke = remember {
         Stroke(
-            width = 16f,
-            pathEffect = PathEffect.dashPathEffect(floatArrayOf(15f, 15f), 0f)
+            width = 16f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(15f, 15f), 0f)
         )
     }
 
@@ -608,9 +575,7 @@ fun UserImageConfirmationScreen(
             .background(MaterialTheme.colorScheme.secondary)
             .drawBehind {
                 drawRoundRect(
-                    color = dashColor,
-                    style = stroke,
-                    cornerRadius = CornerRadius(16.dp.toPx())
+                    color = dashColor, style = stroke, cornerRadius = CornerRadius(16.dp.toPx())
                 )
             }
             .clickable {

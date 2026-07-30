@@ -18,4 +18,17 @@ class FoundReportRepository {
             null
         }
     }
+
+    suspend fun getFoundReportById(id: Int): FoundReport? {
+        return try {
+            postgrest.select {
+                filter {
+                    eq("id", id)
+                }
+            }.decodeSingleOrNull<FoundReport>()
+        } catch (e: Exception) {
+            Log.e("FoundReportRepository", "Erro ao buscar registro pelo ID: $id", e)
+            null
+        }
+    }
 }

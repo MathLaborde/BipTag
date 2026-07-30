@@ -9,7 +9,6 @@ import androidx.navigation.navArgument
 import br.com.biptag.screens.AlertIssuedScreen
 import br.com.biptag.screens.AlertsScreen
 import br.com.biptag.screens.BindTagScreen
-import br.com.biptag.screens.ConfirmationScreen
 import br.com.biptag.screens.CreditsScreen
 import br.com.biptag.screens.EditItemScreen
 import br.com.biptag.screens.InitialScreen
@@ -24,14 +23,15 @@ import br.com.biptag.screens.ReportItemScreen
 import br.com.biptag.screens.SignUpScreen
 import br.com.biptag.screens.ReturnProcessScreen
 import br.com.biptag.screens.CollectionPointsScreen
+import br.com.biptag.screens.ConfirmationScreen
+import br.com.biptag.screens.ItemFoundScreen
 
 @Composable
 fun NavigationRoutes() {
     val navController = rememberNavController()
 
     NavHost(
-        navController = navController,
-        startDestination = Destination.InitialScreen.route
+        navController = navController, startDestination = Destination.InitialScreen.route
     ) {
         // Telas Simples
         composable(Destination.InitialScreen.route) {
@@ -68,8 +68,7 @@ fun NavigationRoutes() {
             BindTagScreen(navController = navController, itemId = itemId)
         }
         composable(
-            route = Destination.ItemDetailScreen.route,
-            arguments = listOf(navArgument("itemId") {
+            route = Destination.ItemDetailScreen.route, arguments = listOf(navArgument("itemId") {
                 type = NavType.IntType
             })
         ) { backStackEntry ->
@@ -79,7 +78,7 @@ fun NavigationRoutes() {
         composable(
             route = Destination.EditItemScreen.route,
             arguments = listOf(navArgument("itemId") { type = NavType.IntType })
-        ) { backStackEntry   ->
+        ) { backStackEntry ->
 
             val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
 
@@ -92,26 +91,20 @@ fun NavigationRoutes() {
 
             val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
 
-            ReportItemScreen(
-                itemId = itemId,
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onSuccess = {
-                    navController.navigate(Destination.AlertIssuedScreen.route)
-                }
-            )
+            ReportItemScreen(itemId = itemId, onBackClick = {
+                navController.popBackStack()
+            }, onSuccess = {
+                navController.navigate(Destination.AlertIssuedScreen.route)
+            })
         }
         composable(Destination.AlertsScreen.route) {
             AlertsScreen(navController = navController)
         }
         composable(Destination.MapsScreen.route) {
             MapsScreen(
-                navController = navController,
-                onItemClick = { clickedAlertId ->
+                navController = navController, onItemClick = { clickedAlertId ->
                     navController.navigate(Destination.LostItemScreen.createRoute(clickedAlertId))
-                }
-            )
+                })
         }
         composable(
             route = Destination.LostItemScreen.route,
@@ -128,6 +121,13 @@ fun NavigationRoutes() {
         ) { backStackEntry ->
             val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
             ConfirmationScreen(navController = navController, alertId = alertId)
+        }
+        composable(
+            route = Destination.ItemFoundScreen.route,
+            arguments = listOf(navArgument("alertId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
+            ItemFoundScreen(navController = navController, alertId = alertId)
         }
         composable(
             route = Destination.ReturnProcessScreen.route,
