@@ -33,9 +33,11 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.outlined.Backpack
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import coil.compose.AsyncImage
 
 // Estrutura auxiliar para juntar o Alerta com os dados do Item na tela
 data class MapAlertData(
@@ -118,6 +120,8 @@ fun MapsScreen(navController: NavController, onItemClick: (Int) -> Unit = {}) {
                     )
                 }
             }
+
+            // TODO fazer a busca do mapa
             SearchAndLegendOverlay(
                 searchQuery = searchQuery,
                 onSearchQueryChange = { searchQuery = it }
@@ -244,11 +248,15 @@ fun AlertDetailsCard(
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    val itemIcon = when (data.item?.category) {
-                        2 -> Icons.Outlined.Backpack
-                        else -> Icons.Outlined.PedalBike
-                    }
-                    Icon(itemIcon, contentDescription = null)
+                    // TODO colocar placeholder caso não tenha imagem
+                    AsyncImage(
+                        model = data.item?.image,
+                        contentDescription = "Imagem de ${data.item?.name}",
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop,
+                    )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {

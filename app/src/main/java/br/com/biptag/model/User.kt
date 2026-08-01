@@ -20,4 +20,6 @@ class User (
     @ColumnInfo(name = "phone_number")
     val phoneNumber: String = "",
     val notifications: Boolean = false,
+    @ColumnInfo(name = "fcm_token")
+    val fcmToken: String? = null,
 )

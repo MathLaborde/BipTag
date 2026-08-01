@@ -29,6 +29,9 @@ import br.com.biptag.ui.theme.BipTagTheme
 
 @Composable
 fun AlertsScreen(navController: NavController) {
+
+    // TODO, pensei em mudar as sessões "Hoje" e "Esta semana" para "Meus Alertas" "Outros Alertas". Assim a pessoas tem uma lista dos alertas dela também.
+
     Scaffold(
         topBar = {
             TopBar(title = "Alertas")

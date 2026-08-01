@@ -225,6 +225,8 @@ fun InventoryItem(
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
+    // TODO corrigir status caso esteja roubado ou perdido.
+
     Card(
         modifier = Modifier
             .fillMaxWidth()

@@ -149,6 +149,8 @@ fun ItemDetailScreen(navController: NavController, itemId: Int) {
 @Composable
 fun ItemHeaderSection(item: Item) {
 
+    // TODO Ajustar imagem para ficar na box toda.
+
     val statusColor = when (item.status) {
         "Verified", "Verificado" -> MaterialTheme.colorScheme.primary
         "Stolen", "Roubado" -> MaterialTheme.colorScheme.error
@@ -369,6 +371,9 @@ fun RfidActionCard(navController: NavController, item: Item) {
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
+
+            // TODO verificar se o item já tem alerta emitido e se tiver jogar para a tela de Alerta Emitido mostrando o status atualizado.
+
             PrimaryButton(
                 text = "Reportar perda ou roubo",
                 icon = Icons.Outlined.WarningAmber,

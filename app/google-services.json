@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "999677326368",
+    "project_id": "biptag-squadseven",
+    "storage_bucket": "biptag-squadseven.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:999677326368:android:f54337b85f1c62ee037845",
+        "android_client_info": {
+          "package_name": "br.com.biptag"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCW91NnBraHZzeLlhslPAHibDn3aJFBjvY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

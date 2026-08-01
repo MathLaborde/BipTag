@@ -2,8 +2,10 @@ package br.com.biptag.repository
 
 import br.com.biptag.model.User
 import br.com.biptag.supabase.SupabaseClient
+import com.google.firebase.messaging.FirebaseMessaging
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
@@ -27,6 +29,12 @@ class AuthRepository {
     }
 
     suspend fun signUp(user: User): User {
+        val token = try {
+            FirebaseMessaging.getInstance().token.await()
+        } catch (e: Exception) {
+            null
+        }
+
         auth.signUpWith(Email) {
             email = user.email
             password = user.password
@@ -34,6 +42,7 @@ class AuthRepository {
             data = buildJsonObject {
                 put("name", user.name)
                 put("phone", user.phoneNumber)
+                put("fcm_token", token)
             }
         }
 
@@ -41,9 +50,21 @@ class AuthRepository {
     }
 
     suspend fun signIn(email: String, password: String): User {
+        val token = try {
+            FirebaseMessaging.getInstance().token.await()
+        } catch (e: Exception) {
+            null
+        }
+
         auth.signInWith(Email) {
             this.email = email
             this.password = password
+        }
+
+        auth.updateUser {
+            data = buildJsonObject {
+                put("fcm_token", token)
+            }
         }
 
         return getCurrentUser() ?: throw Exception("Sign in failed")
