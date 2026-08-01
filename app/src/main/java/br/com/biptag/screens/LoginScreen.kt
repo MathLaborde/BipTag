@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -65,6 +66,7 @@ fun LoginScreen(navController: NavController) {
     ) {
         Column(
             modifier = Modifier
+                .imePadding()
                 .fillMaxWidth()
                 .padding(32.dp)
                 .align(Alignment.Center),
@@ -157,7 +159,6 @@ fun FormLogin(navController: NavController) {
 
     Column(
         modifier = Modifier
-            .verticalScroll(scrollState)
             .padding(0.dp, 0.dp, 0.dp, 16.dp,),
     ) {
         Text(

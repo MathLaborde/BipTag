@@ -69,6 +69,7 @@ fun ReportItemScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
+        modifier = Modifier.imePadding(),
         topBar = {
         TopBar(
             title = "Reportar item",
@@ -237,6 +238,8 @@ fun ReportItemScreen(
             }
 
             Spacer(modifier = Modifier.height(18.dp))
+
+            // TODO Criar funcionalidade para add data sem ser com campo de texto.
 
             ReportCustomTextField(
                 label = "Quando aconteceu",

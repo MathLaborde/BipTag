@@ -570,7 +570,6 @@ fun UserImageConfirmationScreen(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(52.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.secondary)
             .drawBehind {
@@ -587,13 +586,13 @@ fun UserImageConfirmationScreen(
             Image(
                 bitmap = profileImage.asImageBitmap(),
                 contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                modifier = Modifier.fillMaxWidth(),
+                contentScale = ContentScale.FillWidth
             )
         } else {
             Row(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .height(52.dp)
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start
