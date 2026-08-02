@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ReturnProcess(
     val id: Int? = null,
-    @SerialName("item_id")
-    val itemId: Int,
+    @SerialName("alert_id")
+    val alertId: Int,
     @SerialName("found_report_id")
     val foundReportId: Int? = null,
     @SerialName("return_type")

@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import br.com.biptag.screens.AlertIssuedScreen
 import br.com.biptag.screens.AlertsScreen
 import br.com.biptag.screens.BindTagScreen
@@ -34,7 +35,12 @@ fun NavigationRoutes() {
         navController = navController, startDestination = Destination.InitialScreen.route
     ) {
         // Telas Simples
-        composable(Destination.InitialScreen.route) {
+        composable(
+            route = Destination.InitialScreen.route,
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "biptag://home" }
+            )
+        ) {
             InitialScreen(navController)
         }
         composable(Destination.LoginScreen.route) {
@@ -124,25 +130,28 @@ fun NavigationRoutes() {
         }
         composable(
             route = Destination.ItemFoundScreen.route,
-            arguments = listOf(navArgument("alertId") { type = NavType.IntType })
+            arguments = listOf(navArgument("alertId") { type = NavType.IntType }),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "biptag://item_found/{alertId}" }
+            )
         ) { backStackEntry ->
             val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
             ItemFoundScreen(navController = navController, alertId = alertId)
         }
         composable(
             route = Destination.ReturnProcessScreen.route,
-            arguments = listOf(navArgument("itemId") { type = NavType.IntType })
+            arguments = listOf(navArgument("alertId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
-            ReturnProcessScreen(navController = navController, itemId = itemId)
+            val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
+            ReturnProcessScreen(navController = navController, alertId = alertId)
         }
 
         composable(
             route = Destination.PartnerPointsScreen.route,
-            arguments = listOf(navArgument("itemId") { type = NavType.IntType })
+            arguments = listOf(navArgument("alertId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
-            CollectionPointsScreen(navController = navController, itemId = itemId)
+            val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
+            CollectionPointsScreen(navController = navController, alertId = alertId)
         }
     }
 

@@ -159,7 +159,8 @@ fun ConfirmationScreen(navController: NavController, alertId: Int) {
                                 foundAddress = foundAddress,
                                 foundDate = dateForDatabase,
                                 notes = notes,
-                                isAnonymous = isAnonymous
+                                isAnonymous = isAnonymous,
+                                alertId = alertId
                             )
 
                             val result = foundReportRepository.createFoundReport(report)
@@ -169,11 +170,7 @@ fun ConfirmationScreen(navController: NavController, alertId: Int) {
                                     context, "Dono avisado! Muito obrigado.", Toast.LENGTH_LONG
                                 ).show()
 
-                                val realId = result.id
-
-                                navController.navigate("item_found_screen/$realId") {
-                                    popUpTo(Destination.MapsScreen.route) { inclusive = false }
-                                }
+                                navController.navigate(Destination.InventoryScreen.route)
                             } else {
                                 Toast.makeText(
                                     context,
@@ -206,7 +203,8 @@ fun ConfirmationScreen(navController: NavController, alertId: Int) {
             isAnonymous = isAnonymous,
             onAnonymousChange = { isAnonymous = it },
             itemImage = itemImage,
-            onItemImageChange = { itemImage = it })
+            onItemImageChange = { itemImage = it }
+        )
     }
 }
 

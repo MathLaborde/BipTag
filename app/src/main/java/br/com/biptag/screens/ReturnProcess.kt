@@ -32,7 +32,7 @@ import br.com.biptag.ui.theme.BipTagTheme
 @Composable
 fun ReturnProcessScreen(
     navController: NavController,
-    itemId: Int
+    alertId: Int
 ) {
     var selectedOption by remember { mutableIntStateOf(1) }
 
@@ -42,7 +42,7 @@ fun ReturnProcessScreen(
         onBackClick = { navController.popBackStack() },
         onContinueClick = {
             if (selectedOption == 1) {
-                navController.navigate(Destination.PartnerPointsScreen.createRoute(itemId))
+                navController.navigate(Destination.PartnerPointsScreen.createRoute(alertId))
             } else {
                 // Fluxo de entregador (Receber em casa)
             }

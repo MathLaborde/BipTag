@@ -4,13 +4,14 @@ import android.util.Log
 import br.com.biptag.model.Alert
 import br.com.biptag.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 
 class AlertRepository {
     private val postgrest = SupabaseClient.client.from("alerts")
 
     suspend fun getActiveAlerts(): List<Alert> {
         return try {
-            postgrest.select {
+            postgrest.select(columns = Columns.raw("*, item_data:items(*)")) {
                 filter {
                     eq("status", "active")
                 }
@@ -23,7 +24,7 @@ class AlertRepository {
 
     suspend fun getAlertById(id: Int): Alert? {
         return try {
-            postgrest.select {
+            postgrest.select(columns = Columns.raw("*, item_data:items(*)")) {
                 filter {
                     eq("id", id)
                 }

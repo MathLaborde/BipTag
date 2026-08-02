@@ -26,6 +26,13 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Define o esquema que o app vai escutar -->
+                <data android:scheme="biptag" />
+            </intent-filter>
         </activity>
 
         <!-- Chave de API do Google Maps, vocês precisam ir em (LOCAL.PROPERTIES)

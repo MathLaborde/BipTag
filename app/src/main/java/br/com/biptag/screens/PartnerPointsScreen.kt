@@ -38,11 +38,10 @@ import br.com.biptag.model.ReturnProcess
 import br.com.biptag.repository.PartnerPointRepository
 import br.com.biptag.repository.ReturnProcessRepository
 
-// 1. TELA INTELIGENTE (Lida com o Supabase e Navegação)
 @Composable
 fun CollectionPointsScreen(
     navController: NavController,
-    itemId: Int
+    alertId: Int
 ) {
     val coroutineScope = rememberCoroutineScope()
     val partnerRepository = remember { PartnerPointRepository() }
@@ -54,12 +53,12 @@ fun CollectionPointsScreen(
 
     LaunchedEffect(Unit) {
         partnerPoints = partnerRepository.getAllPartnerPoints()
+
         if (partnerPoints.isNotEmpty()) {
             selectedPointId = partnerPoints.first().id ?: 0
         }
     }
 
-    // Chama a tela visual passando apenas os dados e as ações
     CollectionPointsContent(
         partnerPoints = partnerPoints,
         selectedPointId = selectedPointId,
@@ -71,7 +70,7 @@ fun CollectionPointsScreen(
                 isSubmitting = true
                 coroutineScope.launch {
                     val process = ReturnProcess(
-                        itemId = itemId,
+                        alertId = alertId,
                         returnType = "partner_point",
                         partnerPointId = selectedPointId
                     )
@@ -86,7 +85,6 @@ fun CollectionPointsScreen(
     )
 }
 
-// 2. TELA VISUAL (Não faz requisições,para o uso com Preview)
 @Composable
 fun CollectionPointsContent(
     partnerPoints: List<PartnerPoint>,
@@ -110,6 +108,16 @@ fun CollectionPointsContent(
         if (partnerPoints.isNotEmpty()) {
             cameraPositionState.position = CameraPosition.fromLatLngZoom(
                 LatLng(partnerPoints[0].latitude, partnerPoints[0].longitude), 14f
+            )
+        }
+    }
+
+    LaunchedEffect(selectedPointId) {
+        if (selectedPointId > 0) {
+            val partner = partnerPoints.first { partnerPoint -> partnerPoint.id == selectedPointId }
+
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(
+                LatLng(partner.latitude, partner.longitude), 14f
             )
         }
     }
@@ -270,7 +278,6 @@ fun PartnerPointCard(
     }
 }
 
-// 3. PREVIEW: Agora usa a tela visual com dados estáticos para renderizar!
 @Preview(showBackground = true)
 @Composable
 fun CollectionPointsScreenPreview() {

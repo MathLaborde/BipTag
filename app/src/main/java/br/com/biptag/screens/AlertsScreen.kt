@@ -1,5 +1,6 @@
 package br.com.biptag.screens
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,11 +12,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -24,13 +30,36 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.biptag.components.BottomBar
 import br.com.biptag.components.TopBar
+import br.com.biptag.model.Alert
 import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.AlertRepository
+import br.com.biptag.repository.AuthRepository
 import br.com.biptag.ui.theme.BipTagTheme
+import br.com.biptag.utils.formatRelativeTime
+import coil.compose.AsyncImage
 
 @Composable
 fun AlertsScreen(navController: NavController) {
 
     // TODO, pensei em mudar as sessões "Hoje" e "Esta semana" para "Meus Alertas" "Outros Alertas". Assim a pessoas tem uma lista dos alertas dela também.
+
+    var myAlerts by remember { mutableStateOf(listOf<Alert>()) }
+    var othersAlerts by remember { mutableStateOf(listOf<Alert>()) }
+    val repository = remember { AlertRepository() }
+    val authRepository = remember { AuthRepository() }
+
+    val user = authRepository.getCurrentUser()
+
+    LaunchedEffect(Unit) {
+        try {
+            val result = repository.getActiveAlerts() ?: emptyList()
+
+            myAlerts = result.filter { alert -> alert.itemData?.userId == user?.id }
+            othersAlerts = result.filter { alert -> alert.itemData?.userId != user?.id }
+        } catch (e: Exception) {
+            Log.e("Supabase", "Erro ao carregar itens", e)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -48,124 +77,132 @@ fun AlertsScreen(navController: NavController) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                text = "HOJE",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
-            )
+            if (myAlerts.isNotEmpty()) {
+                Text(
+                    text = "Meus Alertas",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
+                )
 
-            AlertCard(
-                icon = Icons.Outlined.LocationOn,
-                iconContainerColor = Color(0xFFE8F5E9),
-                iconTintColor = Color(0xFF4CAF50),
-                title = "Alguém está com seu item!",
-                subtitle = "Notebook Dell · toque para ver",
-                timeText = "agora",
-                isUnread = true,
-                onClick = {
-                    navController.navigate(
-                        Destination.ConfirmationScreen.createRoute(
-                            1
-                        )
+                myAlerts.forEach { alert ->
+                    AlertCard(
+                        image = alert.itemData?.image,
+                        title = alert.itemData?.name,
+                        subtitle = "Item perdido proximo a você!",
+                        timeText = formatRelativeTime(alert.incidentDate),
+                        isUnread = true,
+                        onClick = {
+                            navController.navigate(
+                                Destination.AlertIssuedScreen.route
+                            )
+                        }
                     )
-
-                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
                 }
-            )
+            }
 
-            AlertCard(
-                icon = Icons.Outlined.Notifications,
-                iconContainerColor = Color(0xFFFFEBEE),
-                iconTintColor = Color(0xFFE53935),
-                title = "Item perdido por perto",
-                subtitle = "Bicicleta Caloi vista a 300 m",
-                timeText = "12 min",
-                isUnread = true,
-                onClick = {
-                    navController.navigate(
-                        Destination.ConfirmationScreen.createRoute(
-                            1
-                        )
+            if (othersAlerts.isNotEmpty()) {
+                Text(
+                    text = "Outros Alertas",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
+                )
+                othersAlerts.forEach { alert ->
+                    AlertCard(
+                        image = alert.itemData?.image,
+                        title = alert.itemData?.name,
+                        subtitle = "Item perdido proximo a você!",
+                        timeText = formatRelativeTime(alert.incidentDate),
+                        isUnread = false,
+                        onClick = {
+                            navController.navigate(
+                                Destination.LostItemScreen.createRoute(
+                                    alert.id as Int
+                                )
+                            )
+                        }
                     )
-                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
                 }
-            )
+            }
 
-            Text(
-                text = "ESTA SEMANA",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
-            )
-
-            AlertCard(
-                icon = Icons.Outlined.Sell,
-                iconContainerColor = Color(0xFFE3F2FD),
-                iconTintColor = Color(0xFF1E88E5),
-                title = "Etiqueta vinculada",
-                subtitle = "Câmera Canon EOS protegida",
-                timeText = "2 dias",
-                isUnread = false,
-                onClick = {
-                    navController.navigate(
-                        Destination.ConfirmationScreen.createRoute(
-                            1
-                        )
-                    )
-                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
-                }
-            )
-
-            AlertCard(
-                icon = Icons.Outlined.CheckCircle,
-                iconContainerColor = Color(0xFFE8F5E9),
-                iconTintColor = Color(0xFF4CAF50),
-                title = "Devolução concluída",
-                subtitle = "Carteira devolvida com sucesso",
-                timeText = "3 dias",
-                isUnread = false,
-                onClick = {
-                    navController.navigate(
-                        Destination.ConfirmationScreen.createRoute(
-                            1
-                        )
-                    )
-                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
-                }
-            )
-
-            AlertCard(
-                icon = Icons.Outlined.Search,
-                iconContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                title = "Alerta encerrado",
-                subtitle = "Notebook Dell localizado",
-                timeText = "5 dias",
-                isUnread = false,
-                onClick = {
-                    navController.navigate(
-                        Destination.ConfirmationScreen.createRoute(
-                            1
-                        )
-                    )
-                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
-                }
-            )
+            if (othersAlerts.isEmpty() && myAlerts.isEmpty()) {
+                Text(
+                    text = "Nenhum Alerta Ativo.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
+                )
+            }
+//
+//            AlertCard(
+//                icon = Icons.Outlined.Notifications,
+//                iconContainerColor = Color(0xFFFFEBEE),
+//                iconTintColor = Color(0xFFE53935),
+//                title = "Item perdido por perto",
+//                subtitle = "Bicicleta Caloi vista a 300 m",
+//                timeText = "12 min",
+//                isUnread = true,
+//                onClick = {
+//                    navController.navigate(
+//                        Destination.ConfirmationScreen.createRoute(
+//                            1
+//                        )
+//                    )
+//                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
+//                }
+//            )
+//
+//
+//
+//            AlertCard(
+//                icon = Icons.Outlined.CheckCircle,
+//                iconContainerColor = Color(0xFFE8F5E9),
+//                iconTintColor = Color(0xFF4CAF50),
+//                title = "Devolução concluída",
+//                subtitle = "Carteira devolvida com sucesso",
+//                timeText = "3 dias",
+//                isUnread = false,
+//                onClick = {
+//                    navController.navigate(
+//                        Destination.ConfirmationScreen.createRoute(
+//                            1
+//                        )
+//                    )
+//                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
+//                }
+//            )
+//
+//            AlertCard(
+//                icon = Icons.Outlined.Search,
+//                iconContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+//                iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
+//                title = "Alerta encerrado",
+//                subtitle = "Notebook Dell localizado",
+//                timeText = "5 dias",
+//                isUnread = false,
+//                onClick = {
+//                    navController.navigate(
+//                        Destination.ConfirmationScreen.createRoute(
+//                            1
+//                        )
+//                    )
+//                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
+//                }
+//            )
         }
     }
 }
 
 @Composable
 fun AlertCard(
-    icon: ImageVector,
-    iconContainerColor: Color,
-    iconTintColor: Color,
-    title: String,
+    image: String?,
+    title: String?,
     subtitle: String,
-    timeText: String,
+    timeText: String?,
     isUnread: Boolean,
     onClick: () -> Unit
 ) {
@@ -189,15 +226,25 @@ fun AlertCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(iconContainerColor),
+                    .background(color = MaterialTheme.colorScheme.outline),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconTintColor,
-                    modifier = Modifier.size(24.dp)
-                )
+                if (image != null){
+                    AsyncImage(
+                        model = image,
+                        contentDescription = "Imagem",
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Outlined.Notifications,
+                        contentDescription = null,
+                        tint = Color(255, 0, 0, 1),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -206,7 +253,7 @@ fun AlertCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = title,
+                    text = title ?: "",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -226,7 +273,7 @@ fun AlertCard(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = timeText,
+                    text = timeText ?: "",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     fontSize = 11.sp

@@ -10,6 +10,9 @@ data class Alert(
     @SerialName("item_id")
     val itemId: Int,
 
+    @SerialName("item_data")
+    val itemData: Item? = null,
+
     val type: String,
 
     @SerialName("last_seen_lat")

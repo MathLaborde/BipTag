@@ -55,7 +55,6 @@ fun MapsScreen(navController: NavController, onItemClick: (Int) -> Unit = {}) {
 
     val coroutineScope = rememberCoroutineScope()
     val alertRepository = remember { AlertRepository() }
-    val itemRepository = remember { ItemRepository() }
     var mapDataList by remember { mutableStateOf<List<MapAlertData>>(emptyList()) }
     var selectedAlert by remember { mutableStateOf<MapAlertData?>(null) }
     var searchQuery by remember { mutableStateOf("") }
@@ -67,12 +66,11 @@ fun MapsScreen(navController: NavController, onItemClick: (Int) -> Unit = {}) {
         isLoading = true
         try {
             val alerts = alertRepository.getActiveAlerts()
-            val items = itemRepository.getAllItems()
 
             mapDataList = alerts.map { alert ->
                 MapAlertData(
                     alert = alert,
-                    item = items.find { it.id == alert.itemId }
+                    item = alert.itemData
                 )
             }
         } catch (e: Exception) {

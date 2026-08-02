@@ -54,15 +54,15 @@ sealed class Destination(val route: String) {
         }
     }
 
-    object ReturnProcessScreen : Destination("return_process_screen/{itemId}") {
-        fun createRoute(itemId: Int): String {
-            return "return_process_screen/$itemId"
+    object ReturnProcessScreen : Destination("return_process_screen/{alertId}") {
+        fun createRoute(alertId: Int): String {
+            return "return_process_screen/$alertId"
         }
     }
 
-    object PartnerPointsScreen : Destination("partner_points_screen/{itemId}") {
-        fun createRoute(itemId: Int): String {
-            return "partner_points_screen/$itemId"
+    object PartnerPointsScreen : Destination("partner_points_screen/{alertId}") {
+        fun createRoute(alertId: Int): String {
+            return "partner_points_screen/$alertId"
         }
     }
 }

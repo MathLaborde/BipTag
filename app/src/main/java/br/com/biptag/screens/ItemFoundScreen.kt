@@ -23,8 +23,11 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
+import br.com.biptag.model.Alert
 import br.com.biptag.model.FoundReport
 import br.com.biptag.model.Item
+import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.AlertRepository
 import br.com.biptag.repository.FoundReportRepository
 import br.com.biptag.repository.ItemRepository
 import br.com.biptag.ui.theme.BipTagTheme
@@ -40,27 +43,21 @@ import com.google.maps.android.compose.rememberCameraPositionState
 fun ItemFoundScreen(
     navController: NavController,
     alertId: Int,
-    repository: FoundReportRepository = remember { FoundReportRepository() },
-    itemRepository: ItemRepository = remember { ItemRepository() }
+    alertRepository: AlertRepository = remember { AlertRepository() }
 ) {
     var reportData by remember { mutableStateOf<FoundReport?>(null) }
-    var itemData by remember { mutableStateOf<Item?>(null) }
+    var alertData by remember { mutableStateOf<Alert?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(alertId) {
         isLoading = true
 
-        val report = repository.getFoundReportById(alertId)
-        reportData = report
-
-        report?.itemId?.let { id ->
-            itemData = itemRepository.getItemById(id)
-        }
+        alertData = alertRepository.getAlertById(alertId)
 
         isLoading = false
     }
 
-    val itemName = itemData?.name ?: "Item"
+    val itemName = alertData?.itemData?.name ?: "item"
     val finderName = if (reportData?.isAnonymous == true) {
         "Anônimo"
     } else {
@@ -93,7 +90,9 @@ fun ItemFoundScreen(
             PrimaryButton(
                 modifier = Modifier.padding(16.dp),
                 text = "Escolher forma de devolução",
-                onClick = {})
+                onClick = {
+                    navController.navigate(Destination.ReturnProcessScreen.createRoute(alertId))
+                })
         }
     }) { paddingValues ->
         Box(
@@ -222,6 +221,9 @@ fun ItemFoundScreen(
                                     tint = MaterialTheme.colorScheme.outlineVariant
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
+
+                                // TODO ajustar fortato da data e hora.
+
                                 Column {
                                     Text(
                                         text = "Quando",

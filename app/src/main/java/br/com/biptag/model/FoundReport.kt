@@ -13,6 +13,9 @@ data class FoundReport(
     @SerialName("finder_id")
     val finderId: String,
 
+    @SerialName("alert_id")
+    val alertId: Int,
+
     @SerialName("found_lat")
     val foundLat: Double,
 

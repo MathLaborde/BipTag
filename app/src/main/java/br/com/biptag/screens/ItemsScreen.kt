@@ -141,6 +141,7 @@ fun ContentInventoryScreen(
 
     LaunchedEffect(Unit) {
         if (isPreview) return@LaunchedEffect
+
         try {
             val result = repository?.getAllItems() ?: emptyList()
             Log.d("Supabase", "Itens carregados: $result")

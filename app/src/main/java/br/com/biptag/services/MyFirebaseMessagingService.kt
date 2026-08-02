@@ -34,16 +34,22 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             notificationManager.createNotificationChannel(channel)
         }
 
+        val uri = if (alertId != null) {
+            "biptag://item_found/$alertId".toUri()
+        } else {
+            "biptag://home".toUri()
+        }
+
         val intent = Intent(
             Intent.ACTION_VIEW,
-            "biptag://lost_item/$alertId".toUri(),
+            uri,
             this,
             MainActivity::class.java
         )
 
         val pendingIntent = PendingIntent.getActivity(
             this,
-            0,
+            alertId?.hashCode() ?: 0,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )

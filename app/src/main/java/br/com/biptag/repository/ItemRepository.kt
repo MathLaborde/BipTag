@@ -1,6 +1,7 @@
 package br.com.biptag.repository
 
 import android.util.Log
+import androidx.compose.runtime.remember
 import br.com.biptag.model.Item
 import br.com.biptag.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
@@ -23,8 +24,15 @@ class ItemRepository {
     private val postgrest = SupabaseClient.client.from("items")
     private val storage = SupabaseClient.client.storage
     suspend fun getAllItems(): List<Item> {
-        return postgrest.select(columns = Columns.raw("*, category_data:category(*)"))
-            .decodeList<Item>()
+        val authRepository = AuthRepository()
+
+        val user = authRepository.getCurrentUser() ?: return emptyList()
+
+        return postgrest.select(columns = Columns.raw("*, category_data:category(*)")) {
+            filter {
+                eq("user_id", user.id)
+            }
+        }.decodeList<Item>()
     }
 
     suspend fun getItemById(id: Int): Item? {
