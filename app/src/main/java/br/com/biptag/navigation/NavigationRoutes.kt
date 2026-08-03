@@ -26,6 +26,9 @@ import br.com.biptag.screens.ReturnProcessScreen
 import br.com.biptag.screens.CollectionPointsScreen
 import br.com.biptag.screens.ConfirmationScreen
 import br.com.biptag.screens.ItemFoundScreen
+import br.com.biptag.screens.RatingScreen
+import br.com.biptag.screens.ReturnInstructionScreen
+import br.com.biptag.screens.TrackReturnScreen
 
 @Composable
 fun NavigationRoutes() {
@@ -130,31 +133,57 @@ fun NavigationRoutes() {
         }
         composable(
             route = Destination.ItemFoundScreen.route,
-            arguments = listOf(navArgument("alertId") { type = NavType.IntType }),
+            arguments = listOf(navArgument("foundReportId") { type = NavType.IntType }),
             deepLinks = listOf(
-                navDeepLink { uriPattern = "biptag://item_found/{alertId}" }
+                navDeepLink { uriPattern = "biptag://item_found/{foundReportId}" }
             )
         ) { backStackEntry ->
-            val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
-            ItemFoundScreen(navController = navController, alertId = alertId)
+            val foundReportId = backStackEntry.arguments?.getInt("foundReportId") ?: 0
+            ItemFoundScreen(navController = navController, foundReportId = foundReportId)
         }
         composable(
             route = Destination.ReturnProcessScreen.route,
-            arguments = listOf(navArgument("alertId") { type = NavType.IntType })
+            arguments = listOf(navArgument("foundReportId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
-            ReturnProcessScreen(navController = navController, alertId = alertId)
+            val foundReportId = backStackEntry.arguments?.getInt("foundReportId") ?: 0
+            ReturnProcessScreen(navController = navController, foundReportId = foundReportId)
         }
 
         composable(
             route = Destination.PartnerPointsScreen.route,
-            arguments = listOf(navArgument("alertId") { type = NavType.IntType })
+            arguments = listOf(
+                navArgument("foundReportId") { type = NavType.IntType },
+            )
         ) { backStackEntry ->
-            val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
-            CollectionPointsScreen(navController = navController, alertId = alertId)
+            val foundReportId = backStackEntry.arguments?.getInt("foundReportId") ?: 0
+            CollectionPointsScreen(navController = navController, foundReportId = foundReportId)
+        }
+
+        composable(
+            route = Destination.ReturnInstructionScreen.route,
+            arguments = listOf(navArgument("returnProcessId") { type = NavType.IntType }),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "biptag://return_instruction/{returnProcessId}" }
+            )
+        ) { backStackEntry ->
+            val returnProcessId = backStackEntry.arguments?.getInt("returnProcessId") ?: 0
+            ReturnInstructionScreen(navController = navController, returnProcessId = returnProcessId)
+        }
+
+        composable(
+            route = Destination.TrackReturnScreen.route,
+            arguments = listOf(navArgument("returnProcessId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val returnProcessId = backStackEntry.arguments?.getInt("returnProcessId") ?: 0
+            TrackReturnScreen(navController = navController, returnProcessId = returnProcessId)
+        }
+
+        composable(
+            route = Destination.RatingScreen.route,
+            arguments = listOf(navArgument("returnProcessId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val returnProcessId = backStackEntry.arguments?.getInt("returnProcessId") ?: 0
+            RatingScreen(navController = navController, returnProcessId = returnProcessId)
         }
     }
-
 }
-
-

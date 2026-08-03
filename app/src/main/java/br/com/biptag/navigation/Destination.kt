@@ -48,21 +48,39 @@ sealed class Destination(val route: String) {
         }
     }
 
-    object ItemFoundScreen : Destination("item_found_screen/{alertId}") {
-        fun createRoute(alertId: Int): String {
-            return "item_found_screen/$alertId"
+    object ItemFoundScreen : Destination("item_found_screen/{foundReportId}") {
+        fun createRoute(foundReportId: Int): String {
+            return "item_found_screen/$foundReportId"
         }
     }
 
-    object ReturnProcessScreen : Destination("return_process_screen/{alertId}") {
-        fun createRoute(alertId: Int): String {
-            return "return_process_screen/$alertId"
+    object ReturnProcessScreen : Destination("return_process_screen/{foundReportId}") {
+        fun createRoute(foundReportId: Int): String {
+            return "return_process_screen/$foundReportId"
         }
     }
 
-    object PartnerPointsScreen : Destination("partner_points_screen/{alertId}") {
-        fun createRoute(alertId: Int): String {
-            return "partner_points_screen/$alertId"
+    object PartnerPointsScreen : Destination("partner_points_screen/{foundReportId}") {
+        fun createRoute(foundReportId: Int): String {
+            return "partner_points_screen/$foundReportId"
+        }
+    }
+
+    object ReturnInstructionScreen: Destination("return_instruction_screen/{returnProcessId}"){
+        fun createRoute(returnProcessId: Int): String {
+            return "return_instruction_screen/$returnProcessId"
+        }
+    }
+
+    object TrackReturnScreen: Destination("track_return_screen/{returnProcessId}"){
+        fun createRoute(returnProcessId: Int): String {
+            return "track_return_screen/$returnProcessId"
+        }
+    }
+
+    object RatingScreen: Destination("rating_screen/{returnProcessId}"){
+        fun createRoute(returnProcessId: Int): String {
+            return "rating_screen/$returnProcessId"
         }
     }
 }

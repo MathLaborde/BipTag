@@ -10,16 +10,6 @@ import io.github.jan.supabase.storage.storage
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class ItemUpdate(
-    val name: String,
-    val description: String?,
-    val category: Int?,
-    val image: String?,
-    val status: String,
-    @SerialName("tag_id") val tagId: String?
-)
-
 class ItemRepository {
     private val postgrest = SupabaseClient.client.from("items")
     private val storage = SupabaseClient.client.storage
@@ -50,8 +40,7 @@ class ItemRepository {
 
     suspend fun updateItem(item: Item) {
         try {
-
-            val dadosParaAtualizar = ItemUpdate(
+            val dadosParaAtualizar = Item(
                 name = item.name,
                 description = item.description,
                 category = item.category,

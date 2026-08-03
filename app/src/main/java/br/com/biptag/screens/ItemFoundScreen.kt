@@ -30,6 +30,7 @@ import br.com.biptag.navigation.Destination
 import br.com.biptag.repository.AlertRepository
 import br.com.biptag.repository.FoundReportRepository
 import br.com.biptag.repository.ItemRepository
+import br.com.biptag.repository.ReturnProcessRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -42,17 +43,21 @@ import com.google.maps.android.compose.rememberCameraPositionState
 @Composable
 fun ItemFoundScreen(
     navController: NavController,
-    alertId: Int,
-    alertRepository: AlertRepository = remember { AlertRepository() }
+    foundReportId: Int,
 ) {
+    val foundReportRepository = remember { FoundReportRepository() }
+    val alertRepository = remember { AlertRepository() }
+
     var reportData by remember { mutableStateOf<FoundReport?>(null) }
     var alertData by remember { mutableStateOf<Alert?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
-    LaunchedEffect(alertId) {
+    LaunchedEffect(foundReportId) {
         isLoading = true
 
-        alertData = alertRepository.getAlertById(alertId)
+        reportData = foundReportRepository.getFoundReportById(foundReportId)
+
+        alertData = alertRepository.getAlertById(reportData?.alertId ?: return@LaunchedEffect)
 
         isLoading = false
     }
@@ -91,7 +96,7 @@ fun ItemFoundScreen(
                 modifier = Modifier.padding(16.dp),
                 text = "Escolher forma de devolução",
                 onClick = {
-                    navController.navigate(Destination.ReturnProcessScreen.createRoute(alertId))
+                    navController.navigate(Destination.ReturnProcessScreen.createRoute(foundReportId))
                 })
         }
     }) { paddingValues ->

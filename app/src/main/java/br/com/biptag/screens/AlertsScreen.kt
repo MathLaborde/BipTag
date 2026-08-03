@@ -137,62 +137,6 @@ fun AlertsScreen(navController: NavController) {
                     modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
                 )
             }
-//
-//            AlertCard(
-//                icon = Icons.Outlined.Notifications,
-//                iconContainerColor = Color(0xFFFFEBEE),
-//                iconTintColor = Color(0xFFE53935),
-//                title = "Item perdido por perto",
-//                subtitle = "Bicicleta Caloi vista a 300 m",
-//                timeText = "12 min",
-//                isUnread = true,
-//                onClick = {
-//                    navController.navigate(
-//                        Destination.ConfirmationScreen.createRoute(
-//                            1
-//                        )
-//                    )
-//                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
-//                }
-//            )
-//
-//
-//
-//            AlertCard(
-//                icon = Icons.Outlined.CheckCircle,
-//                iconContainerColor = Color(0xFFE8F5E9),
-//                iconTintColor = Color(0xFF4CAF50),
-//                title = "Devolução concluída",
-//                subtitle = "Carteira devolvida com sucesso",
-//                timeText = "3 dias",
-//                isUnread = false,
-//                onClick = {
-//                    navController.navigate(
-//                        Destination.ConfirmationScreen.createRoute(
-//                            1
-//                        )
-//                    )
-//                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
-//                }
-//            )
-//
-//            AlertCard(
-//                icon = Icons.Outlined.Search,
-//                iconContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-//                iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
-//                title = "Alerta encerrado",
-//                subtitle = "Notebook Dell localizado",
-//                timeText = "5 dias",
-//                isUnread = false,
-//                onClick = {
-//                    navController.navigate(
-//                        Destination.ConfirmationScreen.createRoute(
-//                            1
-//                        )
-//                    )
-//                    // TODO Colocar a tela dinamica com os dados do banco e colocar o ID do alerta passando para o alertId no navController acima.
-//                }
-//            )
         }
     }
 }

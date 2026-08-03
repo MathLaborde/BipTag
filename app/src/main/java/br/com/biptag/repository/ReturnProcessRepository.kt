@@ -18,4 +18,30 @@ class ReturnProcessRepository {
             null
         }
     }
+
+    suspend fun getReturnProcessById(id: Int): ReturnProcess? {
+        return try {
+            postgrest.select {
+                filter { eq("id", id) }
+            }.decodeSingleOrNull<ReturnProcess>()
+        } catch (e: Exception) {
+            Log.e("ReturnProcessRepository", "Erro ao buscar processo de devolução", e)
+            null
+        }
+    }
+
+    suspend fun updateStatus(id: Int, status: String): Boolean {
+        return try {
+            postgrest.update ({
+                set("status", status)
+            }) {
+                filter { eq("id", id)  }
+            }
+
+            true
+        } catch (e: Exception) {
+            Log.e("ReturnProcessRepository", "Erro ao atualizar processo de devolução", e)
+            false
+        }
+    }
 }

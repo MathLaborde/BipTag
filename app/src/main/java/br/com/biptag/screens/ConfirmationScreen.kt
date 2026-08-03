@@ -121,7 +121,9 @@ fun ConfirmationScreen(navController: NavController, alertId: Int) {
 
     Scaffold(modifier = Modifier.imePadding(), topBar = {
         TopBar(
-            title = "Confirmar Item", startIcon = Icons.AutoMirrored.Outlined.ArrowBack, onClick = {
+            title = "Confirmar Item",
+            startIcon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onClick = {
                 navController.popBackStack()
             })
     }, bottomBar = {

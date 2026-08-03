@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
+import br.com.biptag.model.FoundReport
 import br.com.biptag.ui.theme.BipTagTheme
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -35,24 +36,30 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
 import br.com.biptag.model.PartnerPoint
 import br.com.biptag.model.ReturnProcess
+import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.FoundReportRepository
 import br.com.biptag.repository.PartnerPointRepository
 import br.com.biptag.repository.ReturnProcessRepository
 
 @Composable
 fun CollectionPointsScreen(
     navController: NavController,
-    alertId: Int
+    foundReportId: Int
 ) {
     val coroutineScope = rememberCoroutineScope()
+
     val partnerRepository = remember { PartnerPointRepository() }
     val returnRepository = remember { ReturnProcessRepository() }
+    val foundReportRepository = remember { FoundReportRepository() }
 
     var partnerPoints by remember { mutableStateOf<List<PartnerPoint>>(emptyList()) }
     var selectedPointId by remember { mutableIntStateOf(0) }
     var isSubmitting by remember { mutableStateOf(false) }
+    var foundReport by remember { mutableStateOf<FoundReport?>(null) }
 
     LaunchedEffect(Unit) {
         partnerPoints = partnerRepository.getAllPartnerPoints()
+        foundReport = foundReportRepository.getFoundReportById(foundReportId)
 
         if (partnerPoints.isNotEmpty()) {
             selectedPointId = partnerPoints.first().id ?: 0
@@ -70,14 +77,17 @@ fun CollectionPointsScreen(
                 isSubmitting = true
                 coroutineScope.launch {
                     val process = ReturnProcess(
-                        alertId = alertId,
+                        alertId = foundReport?.alertId ?: 0,
                         returnType = "partner_point",
-                        partnerPointId = selectedPointId
+                        partnerPointId = selectedPointId,
+                        returnCode = (100000..999999).random().toString(),
+                        foundReportId = foundReportId,
+                        status = "with_finder"
                     )
                     val result = returnRepository.createReturnProcess(process)
                     isSubmitting = false
                     if (result != null) {
-                        navController.popBackStack()
+                        navController.navigate(Destination.TrackReturnScreen.createRoute(result.id ?: 0))
                     }
                 }
             }
