@@ -32,6 +32,8 @@ import br.com.biptag.repository.FoundReportRepository
 import br.com.biptag.repository.ItemRepository
 import br.com.biptag.repository.ReturnProcessRepository
 import br.com.biptag.ui.theme.BipTagTheme
+import br.com.biptag.utils.formatToBRDate
+import br.com.biptag.utils.formatToBRDateTime
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -71,7 +73,7 @@ fun ItemFoundScreen(
 
     val foundTimeAgo = "Recentemente"
     val address = reportData?.foundAddress ?: "Local não informado"
-    val timeExact = reportData?.foundDate ?: "Data não informada"
+    val timeExact = formatToBRDateTime(reportData?.foundDate)
 
     val location = reportData?.let {
         LatLng(it.foundLat, it.foundLng)

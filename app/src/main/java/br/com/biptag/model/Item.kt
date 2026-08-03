@@ -22,7 +22,7 @@ data class Item (
     @SerialName("category_data")
     val categoryData: Category? = Category(0, ""),
 
-    val status: String = "Criado",
+    val status: String = "created",
 
     @SerialName("nf_key")
     val nfKey: String? = null,

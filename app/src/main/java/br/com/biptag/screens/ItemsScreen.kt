@@ -213,20 +213,28 @@ fun InventoryItem(
     onClick: () -> Unit
 ) {
     val statusColor = when (item.status) {
-        "Created", "Criado" -> MaterialTheme.colorScheme.surfaceVariant
-        "Verified", "Verificado" -> MaterialTheme.colorScheme.secondary
-        "Stolen", "Roubado" -> MaterialTheme.colorScheme.error
+        "created", "Criado" -> MaterialTheme.colorScheme.surfaceVariant
+        "verified", "Verificado" -> MaterialTheme.colorScheme.secondary
+        "stolen", "Roubado" -> MaterialTheme.colorScheme.error
+        "lost", "Perdido" -> MaterialTheme.colorScheme.error
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
     val statusTextColor = when (item.status) {
-        "Created", "Criado" -> MaterialTheme.colorScheme.onSurfaceVariant
-        "Verified", "Verificado" -> MaterialTheme.colorScheme.onSecondary
-        "Stolen", "Roubado" -> MaterialTheme.colorScheme.onError
+        "created", "Criado" -> MaterialTheme.colorScheme.onSurfaceVariant
+        "verified", "Verificado" -> MaterialTheme.colorScheme.onSecondary
+        "stolen", "Roubado" -> MaterialTheme.colorScheme.onError
+        "lost", "Perdido" -> MaterialTheme.colorScheme.onError
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
-    // TODO corrigir status caso esteja roubado ou perdido.
+    val statusText = when (item.status) {
+        "created" -> "Criado"
+        "verified" -> "Verificado"
+        "stolen" -> "Roubado"
+        "lost" -> "Perdido"
+        else -> "Criadoi"
+    }
 
     Card(
         modifier = Modifier
@@ -288,7 +296,7 @@ fun InventoryItem(
                     ) {
                         Text(
                             modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
-                            text = item.status,
+                            text = statusText,
                             color = statusTextColor,
                             style = MaterialTheme.typography.bodySmall
                         )

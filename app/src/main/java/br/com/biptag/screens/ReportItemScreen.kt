@@ -40,6 +40,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.location.Geocoder
 import androidx.compose.ui.platform.LocalContext
+import br.com.biptag.repository.ItemRepository
 import java.util.Locale
 import kotlinx.coroutines.withContext
 
@@ -49,7 +50,8 @@ fun ReportItemScreen(
     itemId: Int, onBackClick: () -> Unit = {}, onSuccess: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
-    val repository = remember { AlertRepository() }
+    val alertRepository = remember { AlertRepository() }
+    val itemRepository = remember { ItemRepository() }
 
     val context = LocalContext.current
     val geocoder = remember { Geocoder(context, Locale.getDefault()) }
@@ -122,7 +124,8 @@ fun ReportItemScreen(
                                     status = "active"
                                 )
 
-                                repository.createAlert(alert)
+                                alertRepository.createAlert(alert)
+                                itemRepository.updateStatus(itemId, if (reportType == "Roubado") "stolen" else "lost")
 
                                 withContext(Dispatchers.Main) {
                                     onSuccess()

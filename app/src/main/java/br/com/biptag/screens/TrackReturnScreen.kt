@@ -89,7 +89,7 @@ fun TrackReturnScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopBar(
-                title = "Instruções",
+                title = "Acompanhar",
                 startIcon = Icons.AutoMirrored.Outlined.ArrowBack,
                 onClick = {
                     navController.popBackStack()
@@ -113,7 +113,6 @@ fun TrackReturnScreen(
         PullToRefreshBox(
             isRefreshing = refreshing,
             onRefresh = { refreshing = true },
-            modifier = Modifier.padding(paddingValues)
         ) {
             Column(
                 modifier = Modifier

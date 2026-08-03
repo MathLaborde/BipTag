@@ -92,4 +92,20 @@ class ItemRepository {
             throw e
         }
     }
+
+    suspend fun updateStatus(id: Int, status: String): Boolean {
+        return try {
+            postgrest.update({
+                set("status", status)
+            }) {
+                filter {
+                    eq("id", id)
+                }
+            }
+            true
+        } catch (e: Exception) {
+            Log.e("ItemRepository", "Erro ao deletar item: $id", e)
+            false
+        }
+    }
 }
