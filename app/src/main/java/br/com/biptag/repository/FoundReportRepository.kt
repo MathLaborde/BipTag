@@ -31,4 +31,17 @@ class FoundReportRepository {
             null
         }
     }
+
+    suspend fun getFoundReportByAlertId(alertId: Int): FoundReport? {
+        return try {
+            postgrest.select {
+                filter {
+                    eq("alert_id", alertId)
+                }
+            }.decodeSingleOrNull<FoundReport>()
+        } catch (e: Exception) {
+            Log.e("FoundReportRepository", "Erro ao buscar registro pelo Alert ID: $alertId", e)
+            null
+        }
+    }
 }

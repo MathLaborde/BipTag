@@ -95,7 +95,9 @@ fun AlertsScreen(navController: NavController) {
                         isUnread = true,
                         onClick = {
                             navController.navigate(
-                                Destination.AlertIssuedScreen.route
+                                Destination.ItemFoundScreen.createRoute(
+                                    alert.id as Int
+                                )
                             )
                         }
                     )

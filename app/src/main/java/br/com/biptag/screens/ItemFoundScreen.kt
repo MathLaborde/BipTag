@@ -55,13 +55,18 @@ fun ItemFoundScreen(
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(foundReportId) {
-        isLoading = true
+        try {
+            isLoading = true
 
-        reportData = foundReportRepository.getFoundReportById(foundReportId)
+            alertData = alertRepository.getAlertById(foundReportId)
 
-        alertData = alertRepository.getAlertById(reportData?.alertId ?: return@LaunchedEffect)
+            reportData = foundReportRepository.getFoundReportByAlertId(foundReportId)
 
-        isLoading = false
+        } catch (e: Exception) {
+            android.util.Log.e("ItemFoundScreen", "Erro ao carregar dados", e)
+        } finally {
+            isLoading = false
+        }
     }
 
     val itemName = alertData?.itemData?.name ?: "item"
