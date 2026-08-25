@@ -83,6 +83,14 @@ sealed class Destination(val route: String) {
             return "rating_screen/$returnProcessId"
         }
     }
-}
+
+    object RequestDriverScreen: Destination("request_driver_screen/{foundReportId}"){
+        fun createRoute(foundReportId: Int): String {
+            return "request_driver_screen/$foundReportId"
+        }
+    }
+
+    }
+
 
 

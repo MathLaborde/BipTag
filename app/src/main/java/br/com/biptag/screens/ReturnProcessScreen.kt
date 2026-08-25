@@ -44,7 +44,7 @@ fun ReturnProcessScreen(
             if (selectedOption == 1) {
                 navController.navigate(Destination.PartnerPointsScreen.createRoute(foundReportId))
             } else {
-                // Fluxo de entregador (Receber em casa)
+                navController.navigate(Destination.RequestDriverScreen.createRoute(foundReportId))
             }
         }
     )

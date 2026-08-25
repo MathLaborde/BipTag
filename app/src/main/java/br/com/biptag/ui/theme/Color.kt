@@ -43,3 +43,8 @@ val DarkOnTertiary = Color(0xFFFFFFFF)
 val DarkOutline = Color(0xFFE3E9ED)
 
 val DarkOnSurfaceVariant = Color(0xFF94A3AD)
+
+val SuccessGreen = Color(0xFF198754)
+val SuccessGreenLight = Color(0xFFE8F5E9)
+val SuccessGreenBorder = Color(0xFFC8E6C9)
+val SuccessGreenDark = Color(0xFF2E7D32)
