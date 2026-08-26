@@ -29,27 +29,78 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
+import br.com.biptag.model.ReturnProcess
+import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.AuthRepository
+import br.com.biptag.repository.FoundReportRepository
+import br.com.biptag.repository.ItemRepository
+import br.com.biptag.repository.ReturnProcessRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import br.com.biptag.ui.theme.SuccessGreen
 import br.com.biptag.ui.theme.SuccessGreenBorder
 import br.com.biptag.ui.theme.SuccessGreenDark
 import br.com.biptag.ui.theme.SuccessGreenLight
+import kotlinx.coroutines.launch
 
 @Composable
 fun RequestDriverScreen(
     navController: NavController,
     foundReportId: Int
 ) {
-    // VARIÁVEIS DE ESTADO (Para o botão de horário selecionado)
-    var selectedTime by remember { mutableStateOf("Agora") }
+    val coroutineScope = rememberCoroutineScope()
 
-    // TODO: Aqui depois vai entrar a lógica do ViewModel para buscar o item no Supabase
-    // Por enquanto, essas variáveis simulam o que virá do banco de dados para a tela desenhar
-    val itemName = "Bicicleta Caloi"
-    val itemCode = "Código BIP-4827"
-    val itemAddress = "Rua Augusta, 240"
-    val itemCity = "Consolação · São Paulo"
-    val ownerName = "Carlos M."
+    // Instanciando os Repositories diretamente na tela
+    val foundReportRepo = remember { FoundReportRepository() }
+    val itemRepo = remember { ItemRepository() }
+    val returnProcessRepo = remember { ReturnProcessRepository() }
+    val authRepo = remember { AuthRepository() }
+
+    // Estados da Tela
+    var selectedTime by remember { mutableStateOf("Agora") }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // Dados reais que virão do banco
+    var itemName by remember { mutableStateOf("") }
+    var itemCode by remember { mutableStateOf("") }
+    var itemAddress by remember { mutableStateOf("") }
+    var ownerName by remember { mutableStateOf("") }
+    var alertId by remember { mutableStateOf(0) }
+
+    // Dispara a busca no banco de dados assim que a tela abre
+    // Dispara a busca no banco de dados assim que a tela abre
+    LaunchedEffect(foundReportId) {
+        isLoading = true
+        try {
+            // O foundReportId que chega na rota na verdade é o alertId vindo da tela anterior
+            val realAlertId = foundReportId
+            android.util.Log.d("RequestDriver", "Buscando pelo Alert ID: $realAlertId")
+
+            // Agora usamos a função certa do repositório!
+            val report = foundReportRepo.getFoundReportByAlertId(realAlertId)
+
+            if (report != null) {
+                android.util.Log.d("RequestDriver", "Report encontrado! itemId: ${report.itemId}")
+                alertId = report.alertId
+                itemAddress = report.foundAddress
+
+                val item = itemRepo.getItemById(report.itemId)
+                itemName = item?.name ?: "Item sem nome"
+                itemCode = item?.tagId ?: "Sem código"
+
+                val currentUser = authRepo.getCurrentUser()
+                ownerName = currentUser?.name ?: "Usuário"
+            } else {
+                android.util.Log.e("RequestDriver", "Nenhum FoundReport para o Alert ID $realAlertId")
+                itemName = "Erro: Objeto não encontrado"
+                itemAddress = "Erro de endereço"
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("RequestDriver", "Erro ao buscar dados no Supabase", e)
+            itemName = "Erro de conexão"
+        } finally {
+            isLoading = false
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -63,59 +114,73 @@ fun RequestDriverScreen(
         bottomBar = {
             Box(modifier = Modifier.padding(24.dp)) {
                 PrimaryButton(
-                    text = "Solicitar motorista parceiro",
+                    text = if (isLoading) "Aguarde..." else "Solicitar motorista parceiro",
                     icon = Icons.Outlined.DirectionsBike,
+                    enabled = !isLoading,
                     onClick = {
-                        // TODO: Criar o return_process no Supabase com o foundReportId e o selectedTime
+                        coroutineScope.launch {
+                            isLoading = true
+
+                            val newProcess = ReturnProcess(
+                                alertId = alertId,
+                                foundReportId = foundReportRepo.getFoundReportByAlertId(alertId)?.id ?: 0,
+                                returnType = "home_delivery",
+                                deliveryFee = 18.0,
+                                status = "pending"
+                            )
+
+                            val created = returnProcessRepo.createReturnProcess(newProcess)
+
+                            if (created != null && created.id != null) {
+                                // Redireciona para a tela de acompanhamento se der certo
+                                navController.navigate(Destination.TrackReturnScreen.createRoute(created.id!!)) {
+                                    popUpTo(Destination.RequestDriverScreen.route) { inclusive = true }
+                                }
+                            }
+                            isLoading = false
+                        }
                     }
                 )
             }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Spacer(modifier = Modifier.height(24.dp))
+        if (isLoading && itemName.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 24.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "Um motorista parceiro busca o item com você e leva direto até a pessoa dona.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+                Text(
+                    text = "Um motorista parceiro busca o item com você e leva direto até a pessoa dona.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            // 1. Card do Item
-            ItemSummaryCard(itemName = itemName, itemCode = itemCode)
+                ItemSummaryCard(itemName = itemName, itemCode = itemCode)
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
+                AddressCard(address = itemAddress, city = "São Paulo")
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // 2. Card de Endereço
-            AddressCard(address = itemAddress, city = itemCity)
+                TimeSelectionCard(selectedTime = selectedTime, onTimeSelected = { selectedTime = it })
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
+                DetailsCard()
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // 3. Card de Horário
-            TimeSelectionCard(
-                selectedTime = selectedTime,
-                onTimeSelected = { selectedTime = it }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 4. Card de Valores e Distância
-            DetailsCard()
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 5. Banner Verde
-            SuccessBanner(ownerName = ownerName)
-
-            Spacer(modifier = Modifier.height(100.dp))
+                SuccessBanner(ownerName = ownerName)
+                Spacer(modifier = Modifier.height(100.dp))
+            }
         }
     }
 }

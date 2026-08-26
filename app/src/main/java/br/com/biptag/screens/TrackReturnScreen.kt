@@ -1,237 +1,285 @@
 package br.com.biptag.screens
 
-import androidx.compose.animation.core.copy
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Sell
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.Phone
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import br.com.biptag.components.PrimaryButton
+import androidx.navigation.compose.rememberNavController
 import br.com.biptag.components.TopBar
-import br.com.biptag.model.Alert
-import br.com.biptag.model.PartnerPoint
 import br.com.biptag.model.ReturnProcess
-import br.com.biptag.navigation.Destination
-import br.com.biptag.repository.AlertRepository
-import br.com.biptag.repository.PartnerPointRepository
 import br.com.biptag.repository.ReturnProcessRepository
-import coil.compose.AsyncImage
-import kotlinx.coroutines.Dispatchers
+import br.com.biptag.ui.theme.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.rememberCameraPositionState
 
 @Composable
 fun TrackReturnScreen(
     navController: NavController,
     returnProcessId: Int
 ) {
-    val returnProcessRepository = remember { ReturnProcessRepository() }
-    val partnerRepository = remember { PartnerPointRepository() }
-    val alertRepository = remember { AlertRepository() }
+    val coroutineScope = rememberCoroutineScope()
+    val returnProcessRepo = remember { ReturnProcessRepository() }
 
+    var isLoading by remember { mutableStateOf(true) }
     var returnProcess by remember { mutableStateOf<ReturnProcess?>(null) }
-    var partnerPoint by remember { mutableStateOf<PartnerPoint?>(null) }
-    var alert by remember { mutableStateOf<Alert?>(null) }
 
-    var refreshing by remember { mutableStateOf(false) }
-
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(returnProcessId, refreshing) {
-        if (refreshing || returnProcess == null) {
-            returnProcess = returnProcessRepository.getReturnProcessById(returnProcessId)
-            partnerPoint = partnerRepository.getPartnerPointById(returnProcess?.partnerPointId)
-            alert = alertRepository.getAlertById(returnProcess?.alertId ?: return@LaunchedEffect)
-            refreshing = false
-        }
+    // Busca o processo no banco para atualizar o status em tempo real
+    LaunchedEffect(returnProcessId) {
+        isLoading = true
+        returnProcess = returnProcessRepo.getReturnProcessById(returnProcessId)
+        isLoading = false
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopBar(
-                title = "Acompanhar",
+                title = "Motorista a caminho",
                 startIcon = Icons.AutoMirrored.Outlined.ArrowBack,
-                onClick = {
-                    navController.popBackStack()
-                }
+                onClick = { navController.popBackStack() }
             )
         },
         bottomBar = {
-            PrimaryButton(
-                text = "Confirmar entrega",
-                modifier = Modifier.padding(16.dp),
-                onClick = {
-                    scope.launch {
-                        withContext(Dispatchers.Main) {
-                            navController.navigate(Destination.RatingScreen.createRoute(returnProcessId))
-                        }
-                    }
-                },
-            )
+            Box(modifier = Modifier.padding(24.dp)) {
+                CancelButton(onClick = {
+                    // TODO: Lógica para cancelar a solicitação no Supabase
+                    navController.popBackStack()
+                })
+            }
         }
     ) { paddingValues ->
-        PullToRefreshBox(
-            isRefreshing = refreshing,
-            onRefresh = { refreshing = true },
-        ) {
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        } else {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(16.dp)
-                    .verticalScroll(
-                        rememberScrollState()
-                    )
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // 1. O MAPA (Espaço reservado para o Google Maps)
+                MapPlaceholder()
+
+                // 2. CONTEÚDO DA TELA
+                Column(modifier = Modifier.padding(24.dp)) {
+                    // Cabeçalho de Status
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Card(
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp)
-                                .border(
-                                    width = 1.dp,
-                                    color = MaterialTheme.colorScheme.outline,
-                                    shape = RoundedCornerShape(18.dp)
-                                ),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.secondary) // Azul claro do tema
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(14.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                if (alert?.itemData?.image != null) {
-                                    AsyncImage(
-                                        model = alert?.itemData?.image,
-                                        contentDescription = "Imagem de ${alert?.itemData?.name}",
-                                        modifier = Modifier
-                                            .size(56.dp)
-                                            .clip(RoundedCornerShape(8.dp)),
-                                        contentScale = ContentScale.Crop,
-                                    )
-                                } else {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Sell,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
-
-                                Spacer(Modifier.size(14.dp))
-
-                                Column(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                ) {
-                                    Text(
-                                        text = alert?.itemData?.name ?: "Item não encontrado.",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                    )
-                                    Spacer(modifier = Modifier.height(6.dp))
-
-                                    Text(
-                                        text = alert?.itemData?.tagId ?: "Sem Tag.",
-                                        maxLines = 1,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.outlineVariant
-                                    )
-                                }
-                            }
+                            Text(
+                                text = "A caminho de você",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        ReturnTimeLine(
-                            status = returnProcess?.status ?: "pending",
-                            pointName = partnerPoint?.name ?: "Ponto Parceiro"
-                        )
-
-                        // TODO deslisar para baixo para atualizar a tela.
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Outlined.Schedule,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Chega em 7 min",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Card do Motorista
+                    DriverCard()
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Card de Rastreamento
+                    TrackingCard(currentStatus = returnProcess?.status ?: "pending")
+
+                    Spacer(modifier = Modifier.height(80.dp)) // Espaço para não colar no botão cancelar
+                }
+            }
         }
     }
 }
 
 @Composable
-fun ReturnTimeLine(status: String, pointName: String) {
-    val statusOrder = listOf("pending", "with_finder", "in_transit", "ready_for_pickup", "completed")
-    val currentIndex = statusOrder.indexOf(status)
+fun MapPlaceholder() {
+    val paulistaPosition = LatLng(-23.5611, -46.6565)
 
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(paulistaPosition, 14f)
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp) // Um pouco maior para ficar mais bonito igual o design
+    ) {
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            uiSettings = MapUiSettings(
+                zoomControlsEnabled = false,
+                myLocationButtonEnabled = false,
+                scrollGesturesEnabled = false, // Impede de arrastar o mapa (fica só de visualização)
+                tiltGesturesEnabled = false
+            )
+        )
+    }
+}
+
+@Composable
+fun DriverCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
-        Column(Modifier.padding(20.dp)) {
-            Text("Status da devolução", fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Avatar
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "RS",
+                        fontWeight = FontWeight.Bold,
+                        color = WarningYellow // Cor da fonte do avatar
+                    )
+                }
 
-            val steps = listOf(
-                "Item com quem encontrou" to "Confirmado pelo localizador",
-                "A caminho do ponto" to "Indo para $pointName",
-                "Disponível para retirada" to "Pode buscar no local",
-                "Entregue ao dono" to "Processo finalizado"
-            )
+                Spacer(modifier = Modifier.width(12.dp))
 
-            steps.forEachIndexed { index, step ->
-                val stepIndex = index + 1
+                // Info do motorista
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Rafael Silva",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = "Avaliação",
+                            tint = WarningYellow,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "4,9",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Honda CG 160",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
 
-                TimelineItem(
-                    title = step.first,
-                    subtitle = step.second,
-                    isDone = currentIndex > stepIndex,
-                    isCurrent = currentIndex == stepIndex,
-                    isLast = index == steps.lastIndex
+                // Botões de ação
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(
+                        onClick = { /* TODO Ligar */ },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.secondary)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Phone,
+                            contentDescription = "Ligar",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    IconButton(
+                        onClick = { /* TODO Mensagem */ },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.secondary)
+                    ) {
+                        Icon(
+                            Icons.Outlined.ChatBubbleOutline,
+                            contentDescription = "Mensagem",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Outlined.Schedule,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Está a 1,4 km · atualizado agora",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -239,52 +287,95 @@ fun ReturnTimeLine(status: String, pointName: String) {
 }
 
 @Composable
-fun TimelineItem(
-    title: String,
-    subtitle: String,
-    isDone: Boolean,
-    isCurrent: Boolean,
-    isLast: Boolean
-) {
-    Row(modifier = Modifier.fillMaxWidth()) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
+fun TrackingCard(currentStatus: String) {
+    // Lógica simples para preencher a barra dependendo do status do banco
+    val progress = when (currentStatus) {
+        "pending" -> 0.1f // Apenas solicitado
+        "in_transit" -> 0.5f // Metade (Coleta)
+        "completed" -> 1.0f // Cheio (Entrega)
+        else -> 0.2f
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(
+                text = "Rastreamento em tempo real ativo",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Barra de Progresso Customizada
+            LinearProgressIndicator(
+                progress = { progress },
                 modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (isDone) Color(0xFF2E7D32) else if (isCurrent) Color(
-                            0xFF263238
-                        ) else Color.Transparent
-                    )
-                    .border(
-                        1.dp,
-                        if (isDone || isCurrent) Color.Transparent else Color.LightGray,
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp)),
+                color = SuccessGreen, // Verde do seu arquivo Color.kt
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                if (isDone) Icon(Icons.Default.Check, null, modifier = Modifier.size(14.dp), tint = Color.White)
-                if (isCurrent) Box(Modifier
-                    .size(6.dp)
-                    .background(Color.White, CircleShape))
-            }
-            // Linha
-            if (!isLast) {
-                Box(Modifier
-                    .width(2.dp)
-                    .height(40.dp)
-                    .background(
-                        if (isDone) Color(0xFF2E7D32) else Color.LightGray.copy(
-                            0.5f
-                        )
-                    ))
+                Text(
+                    text = "Solicitado",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "Coleta",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Entrega",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
-        Spacer(Modifier.width(12.dp))
-        Column {
-            Text(title, fontWeight = FontWeight.Bold, color = if (isDone || isCurrent) Color.Unspecified else Color.Gray)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-        }
+    }
+}
+
+@Composable
+fun CancelButton(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = ErrorRedLight, // Vermelho claro do fundo
+            contentColor = ErrorRedDark     // Vermelho escuro do texto
+        ),
+        elevation = ButtonDefaults.buttonElevation(0.dp)
+    ) {
+        Text(
+            text = "Cancelar solicitação",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TrackReturnScreenPreview() {
+    BipTagTheme {
+        TrackReturnScreen(navController = rememberNavController(), returnProcessId = 1)
     }
 }

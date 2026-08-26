@@ -48,3 +48,9 @@ val SuccessGreen = Color(0xFF198754)
 val SuccessGreenLight = Color(0xFFE8F5E9)
 val SuccessGreenBorder = Color(0xFFC8E6C9)
 val SuccessGreenDark = Color(0xFF2E7D32)
+
+val ErrorRedLight = Color(0xFFFFEBEE)
+
+val ErrorRedDark = Color(0xFFD32F2F)
+
+val WarningYellow = Color(0xFFF5A623)
