@@ -10,10 +10,16 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 
-interface BiptagApiService {
+interface ItemService {
 
     @GET("/api/v1/items")
     suspend fun getItems(@Header("Authorization") token: String): List<Item>
+
+    @GET("/api/v1/items/user/{userId}")
+    suspend fun getItemsByUser(
+        @Header("Authorization") token: String,
+        @Path("userId") userId: String
+    ): List<Item>
 
     @GET("/api/v1/items/{id}")
     suspend fun getItemById(

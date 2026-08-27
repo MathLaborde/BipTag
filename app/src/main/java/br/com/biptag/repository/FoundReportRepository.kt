@@ -2,7 +2,7 @@ package br.com.biptag.repository
 
 import android.util.Log
 import br.com.biptag.model.FoundReport
-import br.com.biptag.supabase.SupabaseClient
+import br.com.biptag.network.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 
 class FoundReportRepository {

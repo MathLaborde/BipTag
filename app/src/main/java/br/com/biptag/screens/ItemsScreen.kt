@@ -161,8 +161,7 @@ fun ContentInventoryScreen(
                     selectedCategories.contains(item.categoryData?.name)
 
             val matchVerified = !onlyVerified ||
-                    item.status == "Verified" ||
-                    item.status == "Verificado"
+                    item.status?.uppercase() == "VERIFIED"
 
             val matchSearch = searchQuery.isBlank() ||
                     item.name.contains(searchQuery, ignoreCase = true)
@@ -212,28 +211,28 @@ fun InventoryItem(
     item: Item,
     onClick: () -> Unit
 ) {
-    val statusColor = when (item.status) {
-        "created", "Criado" -> MaterialTheme.colorScheme.surfaceVariant
-        "verified", "Verificado" -> MaterialTheme.colorScheme.secondary
-        "stolen", "Roubado" -> MaterialTheme.colorScheme.error
-        "lost", "Perdido" -> MaterialTheme.colorScheme.error
+    val currentStatus = item.status?.uppercase() ?: "CREATED"
+
+    val statusColor = when (currentStatus) {
+        "CREATED" -> MaterialTheme.colorScheme.surfaceVariant
+        "VERIFIED" -> MaterialTheme.colorScheme.secondary
+        "STOLEN", "LOST" -> MaterialTheme.colorScheme.error
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
-    val statusTextColor = when (item.status) {
-        "created", "Criado" -> MaterialTheme.colorScheme.onSurfaceVariant
-        "verified", "Verificado" -> MaterialTheme.colorScheme.onSecondary
-        "stolen", "Roubado" -> MaterialTheme.colorScheme.onError
-        "lost", "Perdido" -> MaterialTheme.colorScheme.onError
-        else -> MaterialTheme.colorScheme.surfaceVariant
+    val statusTextColor = when (currentStatus) {
+        "CREATED" -> MaterialTheme.colorScheme.onSurfaceVariant
+        "VERIFIED" -> MaterialTheme.colorScheme.onSecondary
+        "STOLEN", "LOST" -> MaterialTheme.colorScheme.onError
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
-    val statusText = when (item.status) {
-        "created" -> "Criado"
-        "verified" -> "Verificado"
-        "stolen" -> "Roubado"
-        "lost" -> "Perdido"
-        else -> "Criadoi"
+    val statusText = when (currentStatus) {
+        "CREATED" -> "Criado"
+        "VERIFIED" -> "Verificado"
+        "STOLEN" -> "Roubado"
+        "LOST" -> "Perdido"
+        else -> "Desconhecido"
     }
 
     Card(

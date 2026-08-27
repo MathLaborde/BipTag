@@ -1,4 +1,4 @@
-package br.com.biptag.supabase
+package br.com.biptag.network
 
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient

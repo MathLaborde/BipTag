@@ -1,7 +1,7 @@
 package br.com.biptag.repository
 
 import br.com.biptag.model.User
-import br.com.biptag.supabase.SupabaseClient
+import br.com.biptag.network.SupabaseClient
 import com.google.firebase.messaging.FirebaseMessaging
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email

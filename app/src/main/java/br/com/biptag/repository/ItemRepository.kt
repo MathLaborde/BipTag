@@ -2,8 +2,8 @@ package br.com.biptag.repository
 
 import android.util.Log
 import br.com.biptag.model.Item
-import br.com.biptag.services.RetrofitClient
-import br.com.biptag.supabase.SupabaseClient
+import br.com.biptag.network.RetrofitClient
+import br.com.biptag.network.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.storage.storage
 
@@ -18,7 +18,16 @@ class ItemRepository {
 
     suspend fun getAllItems(): List<Item> {
         return try {
-            RetrofitClient.apiService.getItems(getBearerToken())
+
+            val user = SupabaseClient.client.auth.currentUserOrNull()
+            val userId = user?.id
+
+            if (userId != null) {
+                RetrofitClient.itemApiService.getItemsByUser(getBearerToken(), userId)
+            } else {
+                Log.e("ItemRepository", "Usuário não logado. Impossível buscar itens.")
+                emptyList()
+            }
         } catch (e: Exception) {
             Log.e("ItemRepository", "Erro ao buscar itens da API", e)
             emptyList()
@@ -27,7 +36,7 @@ class ItemRepository {
 
     suspend fun getItemById(id: Int): Item? {
         return try {
-            RetrofitClient.apiService.getItemById(getBearerToken(), id)
+            RetrofitClient.itemApiService.getItemById(getBearerToken(), id)
         } catch (e: Exception) {
             Log.e("ItemRepository", "Erro ao buscar item pelo ID: $id", e)
             null
@@ -36,7 +45,7 @@ class ItemRepository {
 
     suspend fun saveItem(item: Item): Item {
         return try {
-            RetrofitClient.apiService.saveItem(getBearerToken(), item)
+            RetrofitClient.itemApiService.saveItem(getBearerToken(), item)
         } catch (e: Exception) {
             Log.e("ItemRepository", "Erro ao salvar novo item na API", e)
             throw e
@@ -46,7 +55,7 @@ class ItemRepository {
     suspend fun updateItem(item: Item) {
         try {
             val id = item.id ?: throw IllegalArgumentException("Item ID não pode ser nulo")
-            RetrofitClient.apiService.updateItem(getBearerToken(), id, item)
+            RetrofitClient.itemApiService.updateItem(getBearerToken(), id, item)
         } catch (e: Exception) {
             Log.e("ItemRepository", "Erro ao atualizar item: ${item.id}", e)
             throw e
@@ -55,7 +64,7 @@ class ItemRepository {
 
     suspend fun deleteItem(id: Int) {
         try {
-            RetrofitClient.apiService.deleteItem(getBearerToken(), id)
+            RetrofitClient.itemApiService.deleteItem(getBearerToken(), id)
         } catch (e: Exception) {
             Log.e("ItemRepository", "Erro ao deletar item: $id", e)
             throw e
@@ -65,7 +74,7 @@ class ItemRepository {
     suspend fun updateStatus(id: Int, status: String): Boolean {
         return try {
             val body = mapOf("status" to status)
-            RetrofitClient.apiService.updateItemStatus(getBearerToken(), id, body)
+            RetrofitClient.itemApiService.updateItemStatus(getBearerToken(), id, body)
             true
         } catch (e: Exception) {
             Log.e("ItemRepository", "Erro ao atualizar status do item: $id", e)

@@ -400,7 +400,7 @@ fun ItemDetailsListCard(item: Item) {
             DetailRowItem(
                 icon = Icons.Outlined.GridView,
                 label = "Categoria",
-                value = item.categoryData?.name ?: "Nenhuma"
+                value = item.categoryData?.name ?: "Sem Categoria"
             )
             HorizontalDivider(
                 thickness = 1.dp,

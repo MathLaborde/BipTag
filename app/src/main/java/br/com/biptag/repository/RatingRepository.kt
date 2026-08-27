@@ -1,8 +1,7 @@
 package br.com.biptag.repository
 
-import br.com.biptag.model.ReturnProcess
 import br.com.biptag.model.Review
-import br.com.biptag.supabase.SupabaseClient
+import br.com.biptag.network.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 
 class RatingRepository {
