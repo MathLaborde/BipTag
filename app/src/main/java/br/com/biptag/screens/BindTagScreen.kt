@@ -144,7 +144,11 @@ fun BindTagScreen(navController: NavController, itemId: Int) {
 
                             if (itemAtual != null) {
                                 val novaTag = gerarTagAleatoria()
-                                val itemAtualizado = itemAtual.copy(tagId = novaTag)
+
+                                val itemAtualizado = itemAtual.copy(
+                                    tagId = novaTag,
+                                    attachTagDate = java.time.OffsetDateTime.now().toString()
+                                )
 
                                 repository.updateItem(itemAtualizado)
                             }

@@ -183,7 +183,7 @@ fun ItemHeaderSection(item: Item) {
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = item.status,
+                    text = item.status ?: "Criado",
                     style = MaterialTheme.typography.labelSmall,
                     color = statusColor
                 )

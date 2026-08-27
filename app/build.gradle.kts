@@ -85,6 +85,12 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
 
+    // OkHttp (Para injetarmos o Token JWT nas requisições)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // Conversor para transformar o JSON da API nas suas Data Classes
+    implementation("com.squareup.retrofit2:converter-kotlinx-serialization:2.11.0")
+
     // Coil dependence
     implementation("io.coil-kt:coil-compose:2.7.0")
 
