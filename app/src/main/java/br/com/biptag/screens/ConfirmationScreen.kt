@@ -145,7 +145,7 @@ fun ConfirmationScreen(navController: NavController, alertId: Int) {
                                     "dd/MM/yyyy hh:mm a", java.util.Locale.getDefault()
                                 )
                                 val dbFormatter = java.text.SimpleDateFormat(
-                                    "yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()
+                                    "yyyy-MM-dd'T'HH:mm:ssXXX", java.util.Locale.getDefault()
                                 )
                                 val parsedDate = parser.parse(foundDateTime)
                                 if (parsedDate != null) dbFormatter.format(parsedDate) else foundDateTime

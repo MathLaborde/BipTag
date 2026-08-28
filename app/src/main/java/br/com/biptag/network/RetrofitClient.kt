@@ -2,6 +2,7 @@ package br.com.biptag.network
 
 import br.com.biptag.services.AlertService
 import br.com.biptag.services.CategoryService
+import br.com.biptag.services.FoundReportService
 import br.com.biptag.services.ItemService
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -36,5 +37,9 @@ object RetrofitClient {
 
     val alertApiService: AlertService by lazy {
         retrofit.create(AlertService::class.java)
+    }
+
+    val foundReportService: FoundReportService by lazy {
+        retrofit.create(FoundReportService::class.java)
     }
 }

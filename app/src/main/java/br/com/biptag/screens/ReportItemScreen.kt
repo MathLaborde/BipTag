@@ -121,7 +121,8 @@ fun ReportItemScreen(
                                     lastSeenLat = selectedLocation.latitude,
                                     lastSeenLng = selectedLocation.longitude,
                                     incidentDate = java.time.Instant.now().toString(),
-                                    status = "active"
+                                    status = "active",
+                                    description = description
                                 )
 
                                 alertRepository.createAlert(alert)
