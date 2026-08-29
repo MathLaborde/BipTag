@@ -7,8 +7,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.material.icons.filled.Sell
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarOutline
@@ -30,19 +28,17 @@ import androidx.navigation.compose.rememberNavController
 import br.com.biptag.components.PrimaryButton
 import br.com.biptag.components.TopBar
 import br.com.biptag.model.Alert
-import br.com.biptag.model.PartnerPoint
 import br.com.biptag.model.ReturnProcess
 import br.com.biptag.model.Review
 import br.com.biptag.model.User
 import br.com.biptag.navigation.Destination
 import br.com.biptag.repository.AlertRepository
 import br.com.biptag.repository.AuthRepository
-import br.com.biptag.repository.RatingRepository
+import br.com.biptag.repository.ReviewRepository
 import br.com.biptag.repository.ReturnProcessRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
-import kotlinx.serialization.SerialName
 
 @Composable
 fun RatingScreen(
@@ -52,7 +48,7 @@ fun RatingScreen(
     val returnProcessRepository = remember { ReturnProcessRepository() }
     val alertRepository = remember { AlertRepository() }
     val authRepository = remember { AuthRepository() }
-    val ratingRepository = remember { RatingRepository() }
+    val reviewRepository = remember { ReviewRepository() }
 
     var returnProcess by remember { mutableStateOf<ReturnProcess?>(null) }
     var alert by remember { mutableStateOf<Alert?>(null) }
@@ -90,7 +86,7 @@ fun RatingScreen(
                                 rating = rating
                             )
 
-                            ratingRepository.create(
+                            reviewRepository.createReview(
                                 review
                             )
 

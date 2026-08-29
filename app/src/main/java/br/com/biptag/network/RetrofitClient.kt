@@ -6,6 +6,7 @@ import br.com.biptag.services.FoundReportService
 import br.com.biptag.services.ItemService
 import br.com.biptag.services.PartnerPointService
 import br.com.biptag.services.ReturnProcessService
+import br.com.biptag.services.ReviewService
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -51,5 +52,9 @@ object RetrofitClient {
 
     val returnProcessService: ReturnProcessService by lazy {
         retrofit.create(ReturnProcessService::class.java)
+    }
+
+    val reviewApiService: ReviewService by lazy {
+        retrofit.create(ReviewService::class.java)
     }
 }

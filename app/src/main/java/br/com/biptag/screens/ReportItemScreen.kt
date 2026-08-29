@@ -138,7 +138,8 @@ fun ReportItemScreen(
                                 isLoading = false
                             }
                         }
-                    })
+                    }
+                )
             }
         }
     }, containerColor = MaterialTheme.colorScheme.background

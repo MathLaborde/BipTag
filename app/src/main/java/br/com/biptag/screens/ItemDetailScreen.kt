@@ -151,10 +151,28 @@ fun ItemHeaderSection(item: Item) {
 
     // TODO Ajustar imagem para ficar na box toda.
 
-    val statusColor = when (item.status) {
-        "Verified", "Verificado" -> MaterialTheme.colorScheme.primary
-        "Stolen", "Roubado" -> MaterialTheme.colorScheme.error
+    val statusText = when (item.status?.lowercase()) {
+        "verified", "verificado" -> "Verificado"
+        "stolen", "roubado" -> "Roubado"
+        "lost", "perdido" -> "Perdido"
+        "created", "criado" -> "Criado"
+        else -> item.status ?: "Criado"
+    }
+
+    val statusColor = when (item.status?.lowercase()) {
+        "created", "criado" -> MaterialTheme.colorScheme.onSurfaceVariant
+        "verified", "verificado" -> MaterialTheme.colorScheme.onSecondary
+        "stolen", "roubado" -> MaterialTheme.colorScheme.onError
+        "lost", "perdido" -> MaterialTheme.colorScheme.onError
         else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    val statusFillColor = when (item.status?.lowercase()) {
+        "created" -> MaterialTheme.colorScheme.surfaceVariant
+        "verified" -> MaterialTheme.colorScheme.secondary
+        "stolen" -> MaterialTheme.colorScheme.error
+        "lost", -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
     Box(
@@ -163,9 +181,22 @@ fun ItemHeaderSection(item: Item) {
             .height(170.dp)
             .background(MaterialTheme.colorScheme.secondary)
     ) {
+        AsyncImage(
+            model = item.image,
+            contentDescription = "Foto do Item",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.3f))
+        )
+
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.15f),
+            color = statusFillColor,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(12.dp)
@@ -175,33 +206,21 @@ fun ItemHeaderSection(item: Item) {
                 modifier = Modifier
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = item.status,
-                    modifier = Modifier.size(14.dp),
-                    tint = statusColor
-                )
+                if (statusText == "Verificado") {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = item.status,
+                        modifier = Modifier.size(14.dp),
+                        tint = statusColor
+                    )
+                }
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = item.status ?: "Criado",
+                    text = statusText,
                     style = MaterialTheme.typography.labelSmall,
                     color = statusColor
                 )
             }
-        }
-        Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            AsyncImage(
-                model = item.image,
-                contentDescription = "Foto do Item",
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape),
-                contentScale = ContentScale.Crop
-            )
         }
     }
 }

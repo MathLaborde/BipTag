@@ -33,10 +33,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,6 +62,10 @@ import br.com.biptag.navigation.Destination
 import br.com.biptag.repository.ItemRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import coil.compose.AsyncImage
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.launch
 
 @Composable
 fun InventoryScreen(navController: NavController) {
@@ -134,10 +140,32 @@ fun ContentInventoryScreen(
 ) {
     val isPreview = LocalInspectionMode.current
     val repository = remember { if (isPreview) null else ItemRepository() }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
 
     var items by remember { mutableStateOf(listOf<Item>()) }
-
     var searchQuery by remember { mutableStateOf("") }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                scope.launch {
+                    try {
+                        val result = repository?.getAllItems() ?: emptyList()
+                        items = result
+                        val categories = result.mapNotNull { it.categoryData?.name }.distinct().sorted()
+                        onCategoriesExtracted(categories)
+                    } catch (e: Exception) {
+                        Log.e("Supabase", "Erro ao recarregar itens", e)
+                    }
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     LaunchedEffect(Unit) {
         if (isPreview) return@LaunchedEffect
@@ -297,7 +325,8 @@ fun InventoryItem(
                             modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
                             text = statusText,
                             color = statusTextColor,
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
 
