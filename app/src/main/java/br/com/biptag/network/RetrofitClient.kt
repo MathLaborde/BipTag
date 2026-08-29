@@ -4,6 +4,8 @@ import br.com.biptag.services.AlertService
 import br.com.biptag.services.CategoryService
 import br.com.biptag.services.FoundReportService
 import br.com.biptag.services.ItemService
+import br.com.biptag.services.PartnerPointService
+import br.com.biptag.services.ReturnProcessService
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -41,5 +43,13 @@ object RetrofitClient {
 
     val foundReportService: FoundReportService by lazy {
         retrofit.create(FoundReportService::class.java)
+    }
+
+    val partnerPointService: PartnerPointService by lazy {
+        retrofit.create(PartnerPointService::class.java)
+    }
+
+    val returnProcessService: ReturnProcessService by lazy {
+        retrofit.create(ReturnProcessService::class.java)
     }
 }
