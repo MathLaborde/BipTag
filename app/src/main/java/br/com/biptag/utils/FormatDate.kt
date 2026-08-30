@@ -1,36 +1,37 @@
-package br.com.biptag.utils
-
-import java.time.OffsetDateTime
+import java.time.Instant
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
+import java.time.temporal.ChronoUnit
 
-/**
- * Formata uma string de data no formato ISO (ex: 2026-06-03T10:00:00+00:00)
- * para o formato brasileiro (dd/MM/yyyy).
- */
-fun formatToBRDate(isoDate: String?): String {
-    if (isoDate.isNullOrBlank()) return ""
+fun formatDateAgo(dateString: String): String {
     return try {
-        val date = OffsetDateTime.parse(isoDate)
-
-        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale("pt", "BR"))
-        date.format(formatter)
+        val instant = Instant.parse(dateString)
+        val now = Instant.now()
+        val diffDays = ChronoUnit.DAYS.between(instant, now)
+        when {
+            diffDays < 1 -> "Hoje"
+            diffDays == 1L -> "Ontem"
+            diffDays < 7 -> "Há $diffDays dias"
+            diffDays < 30 -> "Há ${diffDays / 7} semanas"
+            diffDays < 365 -> "Há ${diffDays / 30} meses"
+            else -> {
+                val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                    .withZone(ZoneId.systemDefault())
+                formatter.format(instant)
+            }
+        }
     } catch (e: Exception) {
-        isoDate
+        "Data inválida"
     }
 }
 
-/**
- * Formata uma string de data no formato ISO (ex: 2026-06-03T10:00:00+00:00)
- * para o formato brasileiro com hora (dd/MM/yyyy HH:mm).
- */
-fun formatToBRDateTime(isoDate: String?): String {
-    if (isoDate.isNullOrBlank()) return ""
+fun formatToBRDateTime(dateString: String): String {
     return try {
-        val date = OffsetDateTime.parse(isoDate)
-        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", Locale("pt", "BR"))
-        date.format(formatter)
+        val instant = Instant.parse(dateString)
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+            .withZone(ZoneId.systemDefault())
+        formatter.format(instant)
     } catch (e: Exception) {
-        isoDate
+        dateString
     }
 }

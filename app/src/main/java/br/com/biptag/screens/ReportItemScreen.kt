@@ -120,6 +120,7 @@ fun ReportItemScreen(
                                     type = if (reportType == "Roubado") "stolen" else "lost",
                                     lastSeenLat = selectedLocation.latitude,
                                     lastSeenLng = selectedLocation.longitude,
+                                    lastSeenAddress = location,
                                     incidentDate = java.time.Instant.now().toString(),
                                     status = "active",
                                     description = description

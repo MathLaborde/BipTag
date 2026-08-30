@@ -70,5 +70,8 @@ class AuthRepository {
         return getCurrentUser() ?: throw Exception("Sign in failed")
     }
 
+
+
+
     suspend fun signOut() = auth.signOut()
 }

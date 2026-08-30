@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.Sell
@@ -319,15 +320,29 @@ fun InventoryItem(
                             .background(
                                 color = statusColor,
                                 shape = CircleShape
-                            ),
+                            )
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
                     ) {
-                        Text(
-                            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
-                            text = statusText,
-                            color = statusTextColor,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            if (statusText == "Verificado") {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                    tint = statusTextColor
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                            }
+                            Text(
+                                text = statusText,
+                                color = statusTextColor,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))
@@ -339,7 +354,7 @@ fun InventoryItem(
                             imageVector = Icons.Outlined.Sell,
                             contentDescription = null,
                             modifier = Modifier.size(14.dp),
-                            tint = if (item.tagId !== null) {
+                            tint = if (item.tagId != null) {
                                 MaterialTheme.colorScheme.primary
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant
@@ -349,14 +364,10 @@ fun InventoryItem(
                         Spacer(modifier = Modifier.width(4.dp))
 
                         Text(
-                            text = if (item.tagId !== null) {
-                                "Etiqueta vinculada"
-                            } else {
-                                "Sem etiqueta"
-                            },
+                            text = if (item.tagId != null) "Etiqueta vinculada" else "Sem etiqueta",
                             maxLines = 1,
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (item.tagId !== null) {
+                            color = if (item.tagId != null) {
                                 MaterialTheme.colorScheme.primary
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant

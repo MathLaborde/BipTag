@@ -125,6 +125,7 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
     var isLinked by remember { mutableStateOf(true) }
     var tagIdText by remember { mutableStateOf("") }
+    var attachTagDate by remember { mutableStateOf("")}
 
     var existingImageUrl by remember { mutableStateOf<String?>(null) }
     var itemImage by remember { mutableStateOf<Bitmap?>(null) }
@@ -519,7 +520,8 @@ fun ContentEditItemScreen(modifier: Modifier, navController: NavController, item
                                 description = description,
                                 category = selectedCategory?.id ?: itemAtual.category,
                                 image = finalImageUrl,
-                                tagId = tagIdText.ifEmpty { null }
+                                tagId = tagIdText.ifEmpty { null },
+                                attachTagDate = attachTagDate.ifEmpty { null }
                             )
                         }
 
