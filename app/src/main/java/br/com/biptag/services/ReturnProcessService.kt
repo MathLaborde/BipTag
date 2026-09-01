@@ -22,4 +22,9 @@ interface ReturnProcessService {
         @Path("id") id: Int,
         @Body process: ReturnProcess
     ): Response<ReturnProcess>
+    @GET("api/v1/return-processes/{id}")
+    suspend fun getReturnProcessById(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): Response<ReturnProcess>
 }

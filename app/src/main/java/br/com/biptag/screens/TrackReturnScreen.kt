@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
-import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.*
@@ -19,8 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,12 +29,17 @@ import br.com.biptag.components.TopBar
 import br.com.biptag.model.ReturnProcess
 import br.com.biptag.repository.ReturnProcessRepository
 import br.com.biptag.ui.theme.*
-import kotlinx.coroutines.launch
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
+import br.com.biptag.network.RetrofitClient
+import io.github.jan.supabase.auth.auth
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import br.com.biptag.R
 
 @Composable
 fun TrackReturnScreen(
@@ -49,11 +52,26 @@ fun TrackReturnScreen(
     var isLoading by remember { mutableStateOf(true) }
     var returnProcess by remember { mutableStateOf<ReturnProcess?>(null) }
 
-    // Busca o processo no banco para atualizar o status em tempo real
+    // Dispara a busca na API via Retrofit assim que a tela abre
     LaunchedEffect(returnProcessId) {
         isLoading = true
-        returnProcess = returnProcessRepo.getReturnProcessById(returnProcessId)
-        isLoading = false
+        try {
+            val accessToken = br.com.biptag.network.SupabaseClient.client.auth.currentAccessTokenOrNull()
+            val token = "Bearer $accessToken"
+
+            val response = RetrofitClient.returnProcessService.getReturnProcessById(token, returnProcessId)
+
+            if (response.isSuccessful) {
+                returnProcess = response.body()
+                android.util.Log.d("TrackReturn", "Processo encontrado! Status: ${returnProcess?.status}")
+            } else {
+                android.util.Log.e("TrackReturn", "Erro na API: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("TrackReturn", "Erro de conexão com a API", e)
+        } finally {
+            isLoading = false
+        }
     }
 
     Scaffold(
@@ -66,11 +84,43 @@ fun TrackReturnScreen(
             )
         },
         bottomBar = {
-            Box(modifier = Modifier.padding(24.dp)) {
-                CancelButton(onClick = {
-                    // TODO: Lógica para cancelar a solicitação no Supabase
-                    navController.popBackStack()
-                })
+            // AQUI ESTÁ O SEGREDO: Fundo sólido para não vazar o mapa, e os dois botões empilhados!
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(24.dp)
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    // NOVO BOTÃO: Acessar código de entrega
+                    Button(
+                        onClick = {
+                            navController.navigate(br.com.biptag.navigation.Destination.DeliveryCodeScreen.createRoute(returnProcessId))
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ButtonBlue,
+
+                        )
+                    ) {
+                        Text(
+                            text = "Acessar código de entrega",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = androidx.compose.ui.graphics.Color.White
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // SEU BOTÃO ANTIGO: Cancelar
+                    CancelButton(onClick = {
+                        navController.popBackStack()
+                    })
+                }
             }
         }
     ) { paddingValues ->
@@ -85,7 +135,7 @@ fun TrackReturnScreen(
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
             ) {
-                // 1. O MAPA (Espaço reservado para o Google Maps)
+                // 1. O MAPA
                 MapPlaceholder()
 
                 // 2. CONTEÚDO DA TELA
@@ -99,7 +149,7 @@ fun TrackReturnScreen(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(MaterialTheme.colorScheme.secondary) // Azul claro do tema
+                                .background(MaterialTheme.colorScheme.secondary)
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
@@ -137,7 +187,6 @@ fun TrackReturnScreen(
                     // Card de Rastreamento
                     TrackingCard(currentStatus = returnProcess?.status ?: "pending")
 
-                    Spacer(modifier = Modifier.height(80.dp)) // Espaço para não colar no botão cancelar
                 }
             }
         }
@@ -147,6 +196,7 @@ fun TrackReturnScreen(
 @Composable
 fun MapPlaceholder() {
     val paulistaPosition = LatLng(-23.5611, -46.6565)
+    val context = LocalContext.current
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(paulistaPosition, 14f)
@@ -155,7 +205,7 @@ fun MapPlaceholder() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(250.dp) // Um pouco maior para ficar mais bonito igual o design
+            .height(250.dp)
     ) {
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
@@ -163,10 +213,16 @@ fun MapPlaceholder() {
             uiSettings = MapUiSettings(
                 zoomControlsEnabled = false,
                 myLocationButtonEnabled = false,
-                scrollGesturesEnabled = false, // Impede de arrastar o mapa (fica só de visualização)
+                scrollGesturesEnabled = false,
                 tiltGesturesEnabled = false
             )
-        )
+        ) {
+            Marker(
+                state = MarkerState(position = paulistaPosition),
+                title = "Motorista a caminho",
+                icon = resizeMapIcon(context, R.drawable.ic_moto_marker, 34, 34)
+            )
+        }
     }
 }
 
@@ -194,7 +250,7 @@ fun DriverCard() {
                     Text(
                         text = "RS",
                         fontWeight = FontWeight.Bold,
-                        color = WarningYellow // Cor da fonte do avatar
+                        color = WarningYellow
                     )
                 }
 
@@ -288,11 +344,10 @@ fun DriverCard() {
 
 @Composable
 fun TrackingCard(currentStatus: String) {
-    // Lógica simples para preencher a barra dependendo do status do banco
     val progress = when (currentStatus) {
-        "pending" -> 0.1f // Apenas solicitado
-        "in_transit" -> 0.5f // Metade (Coleta)
-        "completed" -> 1.0f // Cheio (Entrega)
+        "pending" -> 0.1f
+        "in_transit" -> 0.5f
+        "completed" -> 1.0f
         else -> 0.2f
     }
 
@@ -312,14 +367,14 @@ fun TrackingCard(currentStatus: String) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Barra de Progresso Customizada
+            // Barra de Progresso
             LinearProgressIndicator(
                 progress = { progress },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
-                color = SuccessGreen, // Verde do seu arquivo Color.kt
+                color = SuccessGreen,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
             )
 
@@ -349,7 +404,6 @@ fun TrackingCard(currentStatus: String) {
         }
     }
 }
-
 @Composable
 fun CancelButton(onClick: () -> Unit) {
     Button(
@@ -359,8 +413,8 @@ fun CancelButton(onClick: () -> Unit) {
             .height(52.dp),
         shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = ErrorRedLight, // Vermelho claro do fundo
-            contentColor = ErrorRedDark     // Vermelho escuro do texto
+            containerColor = ErrorRedLight,
+            contentColor = ErrorRedDark
         ),
         elevation = ButtonDefaults.buttonElevation(0.dp)
     ) {
@@ -378,4 +432,22 @@ fun TrackReturnScreenPreview() {
     BipTagTheme {
         TrackReturnScreen(navController = rememberNavController(), returnProcessId = 1)
     }
+}
+
+private fun resizeMapIcon(
+    context: android.content.Context,
+    resId: Int,
+    widthDp: Int,
+    heightDp: Int
+): com.google.android.gms.maps.model.BitmapDescriptor? {
+    val drawable = androidx.core.content.ContextCompat.getDrawable(context, resId) ?: return null
+    val density = context.resources.displayMetrics.density
+    val widthPx = (widthDp * density).toInt()
+    val heightPx = (heightDp * density).toInt()
+
+    val bitmap = android.graphics.Bitmap.createBitmap(widthPx, heightPx, android.graphics.Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bitmap)
+    drawable.setBounds(0, 0, canvas.width, canvas.height)
+    drawable.draw(canvas)
+    return com.google.android.gms.maps.model.BitmapDescriptorFactory.fromBitmap(bitmap)
 }

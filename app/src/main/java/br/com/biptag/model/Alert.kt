@@ -28,4 +28,5 @@ data class Alert(
     val createdAt: String? = null,
 
     val description: String? = null
-)
+) {
+}
