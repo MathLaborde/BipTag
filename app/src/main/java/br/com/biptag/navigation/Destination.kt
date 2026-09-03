@@ -101,6 +101,20 @@ sealed class Destination(val route: String) {
         }
     }
 
+    object DeliveryCompletedScreen: Destination("delivery_completed_screen/{returnProcessId}"){
+        fun createRoute(returnProcessId: Int): String {
+            return "delivery_completed_screen/$returnProcessId"
+        }
+    }
+
+    object AvailabilityScreen: Destination("availability_screen/{returnProcessId}"){
+        fun createRoute(returnProcessId: Int): String {
+            return "availability_screen/$returnProcessId"
+        }
+    }
+
+
+
     }
 
 

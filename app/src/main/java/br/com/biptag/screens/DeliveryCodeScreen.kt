@@ -67,7 +67,7 @@ fun DeliveryCodeScreen(
                             .height(52.dp),
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF263E4D) // Azul ardósia escuro do Figma
+                            containerColor = Color(0xFF263E4D)
                         )
                     ) {
                         Icon(

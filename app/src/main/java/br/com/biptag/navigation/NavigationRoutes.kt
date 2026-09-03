@@ -32,6 +32,8 @@ import br.com.biptag.screens.TrackReturnScreen
 import br.com.biptag.screens.RequestDriverScreen
 import br.com.biptag.screens.DeliveryCodeScreen
 import br.com.biptag.screens.DeliveryToOwnerScreen
+import br.com.biptag.screens.DeliveryCompletedScreen
+import br.com.biptag.screens.AvailabilityScreen
 
 @Composable
 fun NavigationRoutes() {
@@ -211,6 +213,22 @@ fun NavigationRoutes() {
         ) { backStackEntry ->
             val returnProcessId = backStackEntry.arguments?.getInt("returnProcessId") ?: 0
             DeliveryToOwnerScreen(navController = navController, returnProcessId = returnProcessId)
+        }
+
+        composable(
+            route = Destination.DeliveryCompletedScreen.route,
+            arguments = listOf(navArgument("returnProcessId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val returnProcessId = backStackEntry.arguments?.getInt("returnProcessId") ?: 0
+            DeliveryCompletedScreen(navController = navController, returnProcessId = returnProcessId)
+        }
+
+        composable(
+            route = Destination.AvailabilityScreen.route,
+            arguments = listOf(navArgument("returnProcessId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val returnProcessId = backStackEntry.arguments?.getInt("returnProcessId") ?: 0
+            AvailabilityScreen(navController = navController, returnProcessId = returnProcessId)
         }
 
 
