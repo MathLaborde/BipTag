@@ -5,6 +5,7 @@ import android.graphics.ImageDecoder
 import android.location.Address
 import android.location.Geocoder
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -152,6 +153,8 @@ fun ConfirmationScreen(navController: NavController, alertId: Int) {
                             } catch (e: Exception) {
                                 foundDateTime
                             }
+
+                            Log.d("ConfirmationScreen", "Data confirmar Item ${dateForDatabase}, ${foundDateTime}")
 
                             val report = FoundReport(
                                 itemId = alert.itemId,

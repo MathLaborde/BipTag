@@ -27,4 +27,10 @@ interface ReturnProcessService {
         @Header("Authorization") token: String,
         @Path("id") id: Int
     ): Response<ReturnProcess>
+
+    @GET("api/v1/return-processes/by-alert/{alertId}")
+    suspend fun getReturnProcessByAlertId(
+        @Header("Authorization") token: String,
+        @Path("alertId") alertId: Int
+    ): Response<ReturnProcess>
 }

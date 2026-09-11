@@ -1,5 +1,6 @@
 package br.com.biptag.screens
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -67,19 +68,18 @@ fun RequestDriverScreen(
     var alertId by remember { mutableStateOf(0) }
 
     // Dispara a busca no banco de dados assim que a tela abre
-    // Dispara a busca no banco de dados assim que a tela abre
     LaunchedEffect(foundReportId) {
         isLoading = true
         try {
             // O foundReportId que chega na rota na verdade é o alertId vindo da tela anterior
             val realAlertId = foundReportId
-            android.util.Log.d("RequestDriver", "Buscando pelo Alert ID: $realAlertId")
+            Log.d("RequestDriver", "Buscando pelo Alert ID: $realAlertId")
 
             // Agora usamos a função certa do repositório!
             val report = foundReportRepo.getFoundReportByAlertId(realAlertId)
 
             if (report != null) {
-                android.util.Log.d("RequestDriver", "Report encontrado! itemId: ${report.itemId}")
+                Log.d("RequestDriver", "Report encontrado! itemId: ${report.itemId}")
                 alertId = report.alertId
                 itemAddress = report.foundAddress
 
@@ -90,12 +90,12 @@ fun RequestDriverScreen(
                 val currentUser = authRepo.getCurrentUser()
                 ownerName = currentUser?.name ?: "Usuário"
             } else {
-                android.util.Log.e("RequestDriver", "Nenhum FoundReport para o Alert ID $realAlertId")
-                itemName = "Erro: Objeto não encontrado"
-                itemAddress = "Erro de endereço"
+                Log.e("RequestDriver", "Nenhum FoundReport para o Alert ID: $realAlertId, report: ${report}")
+                itemName = "Objeto não encontrado"
+                itemAddress = "Endereço não encontrado"
             }
         } catch (e: Exception) {
-            android.util.Log.e("RequestDriver", "Erro ao buscar dados no Supabase", e)
+            Log.e("RequestDriver", "Erro ao buscar dados no Supabase", e)
             itemName = "Erro de conexão"
         } finally {
             isLoading = false

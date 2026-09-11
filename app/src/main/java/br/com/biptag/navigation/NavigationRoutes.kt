@@ -179,8 +179,8 @@ fun NavigationRoutes() {
             route = Destination.TrackReturnScreen.route,
             arguments = listOf(navArgument("returnProcessId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val returnProcessId = backStackEntry.arguments?.getInt("returnProcessId") ?: 0
-            TrackReturnScreen(navController = navController, returnProcessId = returnProcessId)
+            val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
+            TrackReturnScreen(navController = navController, alertId = alertId)
         }
 
         composable(

@@ -8,7 +8,7 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 
 interface AlertService {
-    @GET("api/v1/alerts")
+    @GET("api/v1/alerts/with-reports")
     suspend fun getAllAlerts(@Header("Authorization") token: String): List<Alert>
 
     @GET("api/v1/alerts/{id}")

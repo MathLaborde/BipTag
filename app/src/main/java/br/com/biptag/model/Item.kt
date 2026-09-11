@@ -12,6 +12,8 @@ data class Item (
 
     val userId: String = "",
 
+    val userData: User? = null,
+
     val name: String = "",
 
     val description: String = "",

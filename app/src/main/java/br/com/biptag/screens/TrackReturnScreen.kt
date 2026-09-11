@@ -44,7 +44,7 @@ import br.com.biptag.R
 @Composable
 fun TrackReturnScreen(
     navController: NavController,
-    returnProcessId: Int
+    alertId: Int
 ) {
     val coroutineScope = rememberCoroutineScope()
     val returnProcessRepo = remember { ReturnProcessRepository() }
@@ -53,13 +53,13 @@ fun TrackReturnScreen(
     var returnProcess by remember { mutableStateOf<ReturnProcess?>(null) }
 
     // Dispara a busca na API via Retrofit assim que a tela abre
-    LaunchedEffect(returnProcessId) {
+    LaunchedEffect(alertId) {
         isLoading = true
         try {
             val accessToken = br.com.biptag.network.SupabaseClient.client.auth.currentAccessTokenOrNull()
             val token = "Bearer $accessToken"
 
-            val response = RetrofitClient.returnProcessService.getReturnProcessById(token, returnProcessId)
+            val response = RetrofitClient.returnProcessService.getReturnProcessByAlertId(token, alertId)
 
             if (response.isSuccessful) {
                 returnProcess = response.body()
@@ -95,7 +95,7 @@ fun TrackReturnScreen(
                     // NOVO BOTÃO: Acessar código de entrega
                     Button(
                         onClick = {
-                            navController.navigate(br.com.biptag.navigation.Destination.DeliveryCodeScreen.createRoute(returnProcessId))
+                            navController.navigate(br.com.biptag.navigation.Destination.DeliveryCodeScreen.createRoute(returnProcess?.id ?: 0))
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -430,7 +430,7 @@ fun CancelButton(onClick: () -> Unit) {
 @Composable
 fun TrackReturnScreenPreview() {
     BipTagTheme {
-        TrackReturnScreen(navController = rememberNavController(), returnProcessId = 1)
+        TrackReturnScreen(navController = rememberNavController(), alertId = 1)
     }
 }
 

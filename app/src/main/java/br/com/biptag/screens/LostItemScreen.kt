@@ -29,6 +29,7 @@ import br.com.biptag.components.TopBar
 import br.com.biptag.model.Alert
 import br.com.biptag.model.Category
 import br.com.biptag.model.Item
+import br.com.biptag.model.User
 import br.com.biptag.navigation.Destination
 import br.com.biptag.repository.AlertRepository
 import br.com.biptag.repository.AuthRepository
@@ -144,8 +145,8 @@ fun LostItemContent(
                 ) {
                     if (!item?.image.isNullOrEmpty()) {
                         AsyncImage(
-                            model = item?.image,
-                            contentDescription = "Foto de ${item?.name}",
+                            model = item.image,
+                            contentDescription = "Foto de ${item.name}",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
                         )
@@ -227,14 +228,9 @@ fun LostItemContent(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column() {
                             Text(
-                                text = ownerName,
+                                text = item?.userData?.name ?: ownerName,
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onBackground
-                            )
-                            Text(
-                                text = "Informação protegida",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.outlineVariant
                             )
                         }
                     }

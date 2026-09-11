@@ -27,6 +27,9 @@ data class Alert(
 
     val createdAt: String? = null,
 
-    val description: String? = null
+    val description: String? = null,
+
+    // Variavel opcional, algumas rotas retorna o FoundReport para ver se o alerta já foi reportado
+    val report: FoundReport? = null,
 ) {
 }

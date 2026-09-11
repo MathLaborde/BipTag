@@ -75,8 +75,7 @@ fun ItemFoundScreen(
     val finderName = if (reportData?.isAnonymous == true) {
         "Anônimo"
     } else {
-        // TODO: Buscar nome do usuário pelo ID (reportData?.userId)
-        "Usuário"
+        reportData?.finder?.name ?: "Usuario não encontrado."
     }
 
     val location = reportData?.let { report ->
@@ -199,7 +198,7 @@ fun ItemFoundScreen(
                         )
 
                         Text(
-                            text = "Alguém está com a sua $itemName.",
+                            text = "Alguém está com $itemName.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,

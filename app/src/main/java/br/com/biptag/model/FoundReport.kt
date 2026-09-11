@@ -9,6 +9,8 @@ data class FoundReport(
 
     val itemId: Int,
 
+    val finder: User? = null,
+
     val finderId: String,
 
     val alertId: Int,

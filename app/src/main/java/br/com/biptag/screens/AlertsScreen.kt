@@ -41,10 +41,9 @@ import coil.compose.AsyncImage
 @Composable
 fun AlertsScreen(navController: NavController) {
 
-    // TODO, pensei em mudar as sessões "Hoje" e "Esta semana" para "Meus Alertas" "Outros Alertas". Assim a pessoas tem uma lista dos alertas dela também.
-
     var myAlerts by remember { mutableStateOf(listOf<Alert>()) }
     var othersAlerts by remember { mutableStateOf(listOf<Alert>()) }
+    var reportedAlerts by remember { mutableStateOf(listOf<Alert>()) }
     val repository = remember { AlertRepository() }
     val authRepository = remember { AuthRepository() }
 
@@ -54,8 +53,14 @@ fun AlertsScreen(navController: NavController) {
         try {
             val result = repository.getActiveAlerts() ?: emptyList()
 
+            Log.d("AletScreen", "Resultado: ${result}")
+
+            // Alertas do Usuario loggado
             myAlerts = result.filter { alert -> alert.itemData?.userId == user?.id }
-            othersAlerts = result.filter { alert -> alert.itemData?.userId != user?.id }
+            // Alertas que foram reportado pelo Usuario Loggado
+            reportedAlerts = result.filter { alert -> alert.report != null && alert.itemData?.userId != user?.id && user?.id == alert.report.finderId }
+            // Restante dos alertas
+            othersAlerts = result.filter { alert -> alert.itemData?.userId != user?.id && alert.report == null }
         } catch (e: Exception) {
             Log.e("Supabase", "Erro ao carregar itens", e)
         }
@@ -104,6 +109,33 @@ fun AlertsScreen(navController: NavController) {
                 }
             }
 
+            if (reportedAlerts.isNotEmpty()) {
+                Text(
+                    text = "Alertas Reportados",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
+                )
+
+                reportedAlerts.forEach { alert ->
+                    AlertCard(
+                        image = alert.itemData?.image,
+                        title = alert.itemData?.name,
+                        subtitle = "Item perdido proximo a você!",
+                        timeText = formatRelativeTime(alert.incidentDate),
+                        isUnread = true,
+                        onClick = {
+                            navController.navigate(
+                                Destination.TrackReturnScreen.createRoute(
+                                    returnProcessId = 1
+                                )
+                            )
+                        }
+                    )
+                }
+            }
+
             if (othersAlerts.isNotEmpty()) {
                 Text(
                     text = "Outros Alertas",
@@ -130,7 +162,7 @@ fun AlertsScreen(navController: NavController) {
                 }
             }
 
-            if (othersAlerts.isEmpty() && myAlerts.isEmpty()) {
+            if (othersAlerts.isEmpty() && myAlerts.isEmpty() && reportedAlerts.isEmpty()) {
                 Text(
                     text = "Nenhum Alerta Ativo.",
                     style = MaterialTheme.typography.labelSmall,
