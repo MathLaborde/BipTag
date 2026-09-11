@@ -177,7 +177,7 @@ fun NavigationRoutes() {
 
         composable(
             route = Destination.TrackReturnScreen.route,
-            arguments = listOf(navArgument("returnProcessId") { type = NavType.IntType })
+            arguments = listOf(navArgument("alertId") { type = NavType.IntType })
         ) { backStackEntry ->
             val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
             TrackReturnScreen(navController = navController, alertId = alertId)
@@ -225,14 +225,18 @@ fun NavigationRoutes() {
 
         composable(
             route = Destination.AvailabilityScreen.route,
-            arguments = listOf(navArgument("returnProcessId") { type = NavType.IntType })
+            arguments = listOf(navArgument("alertId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val returnProcessId = backStackEntry.arguments?.getInt("returnProcessId") ?: 0
-            AvailabilityScreen(navController = navController, returnProcessId = returnProcessId)
+            val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
+            AvailabilityScreen(navController = navController, alertId = alertId)
         }
 
-
-
+        composable(
+            route = Destination.DeliveryRequestedScreen.route,
+            arguments = listOf(navArgument("alertId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
+            br.com.biptag.screens.DeliveryRequestedScreen(navController = navController, alertId = alertId)
+        }
     }
-
 }

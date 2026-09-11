@@ -37,6 +37,7 @@ import br.com.biptag.repository.AuthRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import br.com.biptag.utils.formatRelativeTime
 import coil.compose.AsyncImage
+import kotlinx.coroutines.CancellationException
 
 @Composable
 fun AlertsScreen(navController: NavController) {
@@ -53,7 +54,8 @@ fun AlertsScreen(navController: NavController) {
         try {
             val result = repository.getActiveAlerts() ?: emptyList()
 
-            Log.d("AletScreen", "Resultado: ${result}")
+            Log.d("AlertScreen", "Total de alertas da API: ${result.size}")
+            Log.d("AlertScreen", "ID do usuário logado: ${user?.id}")
 
             // Alertas do Usuario loggado
             myAlerts = result.filter { alert -> alert.itemData?.userId == user?.id }
@@ -61,8 +63,11 @@ fun AlertsScreen(navController: NavController) {
             reportedAlerts = result.filter { alert -> alert.report != null && alert.itemData?.userId != user?.id && user?.id == alert.report.finderId }
             // Restante dos alertas
             othersAlerts = result.filter { alert -> alert.itemData?.userId != user?.id && alert.report == null }
+
+        } catch (e: CancellationException) {
+            throw e // Deixa o Compose cancelar a tela corretamente
         } catch (e: Exception) {
-            Log.e("Supabase", "Erro ao carregar itens", e)
+            Log.e("AlertScreen", "Erro ao carregar alertas", e)
         }
     }
 
@@ -122,13 +127,14 @@ fun AlertsScreen(navController: NavController) {
                     AlertCard(
                         image = alert.itemData?.image,
                         title = alert.itemData?.name,
-                        subtitle = "Item perdido proximo a você!",
+                        subtitle = "Acompanhar devolução do item!",
                         timeText = formatRelativeTime(alert.incidentDate),
                         isUnread = true,
                         onClick = {
                             navController.navigate(
+
                                 Destination.TrackReturnScreen.createRoute(
-                                    returnProcessId = 1
+                                    alertId = alert.id as Int
                                 )
                             )
                         }

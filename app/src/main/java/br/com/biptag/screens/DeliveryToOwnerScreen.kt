@@ -49,26 +49,19 @@ fun DeliveryToOwnerScreen(
     var returnProcess by remember { mutableStateOf<ReturnProcess?>(null) }
     var alertData by remember { mutableStateOf<br.com.biptag.model.Alert?>(null) }
 
-    // Dispara a busca na API via Retrofit assim que a tela abre
     LaunchedEffect(returnProcessId) {
         isLoading = true
         try {
             val accessToken = br.com.biptag.network.SupabaseClient.client.auth.currentAccessTokenOrNull()
             val token = "Bearer $accessToken"
 
-            // 1ª Chamada: Pega o pacote (Response) do Processo de Devolução
             val processResponse = RetrofitClient.returnProcessService.getReturnProcessById(token, returnProcessId)
 
-            // Verifica se a chamada deu certo (código 200)
             if (processResponse.isSuccessful) {
-                // "Abre" o pacote usando o .body()
                 val processBody = processResponse.body()
                 returnProcess = processBody
 
-                // 2ª Chamada: Usa o alertId para puxar os dados do Dono/Item, de forma segura
                 processBody?.alertId?.let { idDoAlerta ->
-                    // OBS: Ajuste "getAlertById" para o nome exato da função que estiver na sua AlertService
-                    val alertResponse = RetrofitClient.alertApiService.getAlertById(token, idDoAlerta)
                     val alert = RetrofitClient.alertApiService.getAlertById(token, idDoAlerta)
                     alertData = alert
                 }
@@ -141,7 +134,6 @@ fun DeliveryToOwnerScreen(
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
             ) {
-                // MAPA
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -161,7 +153,6 @@ fun DeliveryToOwnerScreen(
                             tiltGesturesEnabled = false
                         )
                     ) {
-                        // Trocado para o ícone da Moto!
                         Marker(
                             state = MarkerState(position = currentPosition),
                             title = "Motorista a caminho",
@@ -170,9 +161,7 @@ fun DeliveryToOwnerScreen(
                     }
                 }
 
-                // CONTEÚDO
                 Column(modifier = Modifier.padding(20.dp)) {
-                    // Header (Item Coletado + Tempo)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -211,7 +200,6 @@ fun DeliveryToOwnerScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Card da Timeline
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(20.dp),
@@ -228,36 +216,15 @@ fun DeliveryToOwnerScreen(
 
                             Spacer(modifier = Modifier.height(20.dp))
 
-                            TimelineStep(
-                                state = StepState.COMPLETED,
-                                title = "Motorista a caminho da coleta",
-                                subtitle = "Rafael S. saiu às 14h02",
-                                isLast = false
-                            )
-                            TimelineStep(
-                                state = StepState.COMPLETED,
-                                title = "Item coletado",
-                                subtitle = "Código validado com sucesso",
-                                isLast = false
-                            )
-                            TimelineStep(
-                                state = StepState.CURRENT,
-                                title = "A caminho do dono",
-                                subtitle = "2,8 km restantes · atualizado agora",
-                                isLast = false
-                            )
-                            TimelineStep(
-                                state = StepState.FUTURE,
-                                title = "Entregue e confirmado",
-                                subtitle = "Aguardando validação do recebimento",
-                                isLast = true
-                            )
+                            TimelineStep(state = StepState.COMPLETED, title = "Motorista a caminho da coleta", subtitle = "Rafael S. saiu às 14h02", isLast = false)
+                            TimelineStep(state = StepState.COMPLETED, title = "Item coletado", subtitle = "Código validado com sucesso", isLast = false)
+                            TimelineStep(state = StepState.CURRENT, title = "A caminho do dono", subtitle = "2,8 km restantes · atualizado agora", isLast = false)
+                            TimelineStep(state = StepState.FUTURE, title = "Entregue e confirmado", subtitle = "Aguardando validação do recebimento", isLast = true)
                         }
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Card do Dono (AGORA DINÂMICO)
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(20.dp),
@@ -275,26 +242,25 @@ fun DeliveryToOwnerScreen(
                                     .background(Color(0xFFEAF2F6)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Person,
-                                    contentDescription = null,
-                                    tint = Color(0xFF263E4D)
-                                )
+                                Icon(Icons.Outlined.Person, contentDescription = null, tint = Color(0xFF263E4D))
                             }
 
                             Spacer(modifier = Modifier.width(12.dp))
 
                             Column(modifier = Modifier.weight(1f)) {
-                                // AQUI VOCÊ AJUSTA A VARIÁVEL QUE VEM DA SUA API (ex: returnProcess?.user?.name)
+                                // Puxando o nome real do objeto de Alerta -> Item -> User
+                                val ownerName = alertData?.itemData?.userData?.name ?: "Dono do item"
+                                val fallbackAddress = alertData?.lastSeenAddress ?: "Av. Paulista, 1000 - Bela Vista"
+
                                 Text(
-                                    text = "${returnProcess?.status ?: "Nome do Dono"} · dono do item",
+                                    text = "$ownerName",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF1E293B)
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "Endereço em processamento", // Ajuste para puxar o endereço real depois
+                                    text = fallbackAddress,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color(0xFF94A3B8)
                                 )
@@ -314,8 +280,6 @@ fun DeliveryToOwnerScreen(
     }
 }
 
-// --- COMPONENTES AUXILIARES ---
-
 enum class StepState { COMPLETED, CURRENT, FUTURE }
 
 @Composable
@@ -327,76 +291,37 @@ fun TimelineStep(state: StepState, title: String, subtitle: String, isLast: Bool
         ) {
             when (state) {
                 StepState.COMPLETED -> {
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .background(Color(0xFF10B981), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier.size(24.dp).background(Color(0xFF10B981), CircleShape), contentAlignment = Alignment.Center) {
                         Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                     }
                 }
                 StepState.CURRENT -> {
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .border(3.dp, Color(0xFF263E4D), CircleShape)
-                            .background(Color.White, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier.size(24.dp).border(3.dp, Color(0xFF263E4D), CircleShape).background(Color.White, CircleShape), contentAlignment = Alignment.Center) {
                         Box(modifier = Modifier.size(10.dp).background(Color(0xFF263E4D), CircleShape))
                     }
                 }
                 StepState.FUTURE -> {
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .border(2.dp, Color(0xFFCBD5E1), CircleShape)
-                            .background(Color.White, CircleShape)
-                    )
+                    Box(modifier = Modifier.size(24.dp).border(2.dp, Color(0xFFCBD5E1), CircleShape).background(Color.White, CircleShape))
                 }
             }
             if (!isLast) {
-                Box(
-                    modifier = Modifier
-                        .width(2.dp)
-                        .height(40.dp)
-                        .background(if (state == StepState.COMPLETED) Color(0xFF10B981) else Color(0xFFE2E8F0))
-                )
+                Box(modifier = Modifier.width(2.dp).height(40.dp).background(if (state == StepState.COMPLETED) Color(0xFF10B981) else Color(0xFFE2E8F0)))
             }
         }
-
         Spacer(modifier = Modifier.width(16.dp))
-
         Column(modifier = Modifier.padding(bottom = if (isLast) 0.dp else 24.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = if (state == StepState.FUTURE) Color(0xFF94A3B8) else Color(0xFF1E293B)
-            )
+            Text(text = title, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = if (state == StepState.FUTURE) Color(0xFF94A3B8) else Color(0xFF1E293B))
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = if (state == StepState.FUTURE) Color(0xFFCBD5E1) else Color(0xFF94A3B8)
-            )
+            Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = if (state == StepState.FUTURE) Color(0xFFCBD5E1) else Color(0xFF94A3B8))
         }
     }
 }
 
-// Função para redimensionar o ícone do mapa
-private fun resizeMapIcon(
-    context: android.content.Context,
-    resId: Int,
-    widthDp: Int,
-    heightDp: Int
-): com.google.android.gms.maps.model.BitmapDescriptor? {
+private fun resizeMapIcon(context: android.content.Context, resId: Int, widthDp: Int, heightDp: Int): com.google.android.gms.maps.model.BitmapDescriptor? {
     val drawable = androidx.core.content.ContextCompat.getDrawable(context, resId) ?: return null
     val density = context.resources.displayMetrics.density
     val widthPx = (widthDp * density).toInt()
     val heightPx = (heightDp * density).toInt()
-
     val bitmap = android.graphics.Bitmap.createBitmap(widthPx, heightPx, android.graphics.Bitmap.Config.ARGB_8888)
     val canvas = android.graphics.Canvas(bitmap)
     drawable.setBounds(0, 0, canvas.width, canvas.height)

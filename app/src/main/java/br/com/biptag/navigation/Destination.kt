@@ -72,9 +72,9 @@ sealed class Destination(val route: String) {
         }
     }
 
-    object TrackReturnScreen: Destination("track_return_screen/{returnProcessId}"){
-        fun createRoute(returnProcessId: Int): String {
-            return "track_return_screen/$returnProcessId"
+    object TrackReturnScreen: Destination("track_return_screen/{alertId}"){
+        fun createRoute(alertId: Int): String {
+            return "track_return_screen/$alertId"
         }
     }
 
@@ -95,6 +95,7 @@ sealed class Destination(val route: String) {
             return "delivery_code_screen/$returnProcessId"
         }
     }
+
     object DeliveryToOwnerScreen: Destination("delivery_to_owner_screen/{returnProcessId}"){
         fun createRoute(returnProcessId: Int): String {
             return "delivery_to_owner_screen/$returnProcessId"
@@ -107,15 +108,15 @@ sealed class Destination(val route: String) {
         }
     }
 
-    object AvailabilityScreen: Destination("availability_screen/{returnProcessId}"){
-        fun createRoute(returnProcessId: Int): String {
-            return "availability_screen/$returnProcessId"
+    object AvailabilityScreen: Destination("availability_screen/{alertId}"){
+        fun createRoute(alertId: Int): String {
+            return "availability_screen/$alertId"
         }
     }
 
-
-
+    object DeliveryRequestedScreen: Destination("delivery_requested_screen/{alertId}"){
+        fun createRoute(alertId: Int): String {
+            return "delivery_requested_screen/$alertId"
+        }
     }
-
-
-
+}

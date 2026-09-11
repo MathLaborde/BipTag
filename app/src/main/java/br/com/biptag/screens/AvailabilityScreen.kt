@@ -35,7 +35,7 @@ import br.com.biptag.components.TopBar
 @Composable
 fun AvailabilityScreen(
     navController: NavController,
-    returnProcessId: Int
+    alertId: Int
 ) {
     // Estados para controlar os dias selecionados
     var selectedDays by remember {
@@ -71,8 +71,7 @@ fun AvailabilityScreen(
                 ) {
                     Button(
                         onClick = {
-                            // TODO: Descomentar essa linha quando criarmos a tela DeliveryRequestedScreen no próximo passo!
-                            // navController.navigate(br.com.biptag.navigation.Destination.DeliveryRequestedScreen.createRoute(returnProcessId))
+                            navController.navigate(br.com.biptag.navigation.Destination.DeliveryRequestedScreen.createRoute(alertId))
                         },
                         modifier = Modifier
                             .fillMaxWidth()

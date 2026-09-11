@@ -23,8 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import br.com.biptag.navigation.Destination
-import androidx.compose.material3.ExperimentalMaterial3Api
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,8 +33,7 @@ fun DeliveryCompletedScreen(
     Scaffold(
         containerColor = Color(0xFFF8F9FA),
         topBar = {
-            // Cabeçalho sem a seta de voltar, apenas o título
-            CenterAlignedTopAppBar(
+            TopAppBar(
                 title = {
                     Text(
                         text = "Devolução concluída",
@@ -45,7 +42,7 @@ fun DeliveryCompletedScreen(
                         color = Color(0xFF1E293B)
                     )
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFFF8F9FA)
                 )
             )
@@ -65,7 +62,10 @@ fun DeliveryCompletedScreen(
                 ) {
                     Button(
                         onClick = {
-                            navController.navigate(br.com.biptag.navigation.Destination.DeliveryCompletedScreen.createRoute(returnProcessId))
+                            // Volta para a home e limpa o histórico de navegação
+                            navController.navigate(Destination.InitialScreen.route) {
+                                popUpTo(0) { inclusive = true }
+                            }
                         },
                         enabled = true,
                         modifier = Modifier
@@ -262,7 +262,7 @@ fun DeliveryCompletedScreen(
                             Icon(
                                 imageVector = Icons.Outlined.StarBorder,
                                 contentDescription = "Estrela",
-                                tint = Color(0xFFFBBF24), // Amarelo
+                                tint = Color(0xFFFBBF24),
                                 modifier = Modifier.size(32.dp)
                             )
                         }
