@@ -40,4 +40,18 @@ class AlertRepository {
             throw e
         }
     }
+
+    // Nova função para dar baixa na devolução
+    suspend fun resolveAlert(alertId: Int) {
+        try {
+            val response = RetrofitClient.alertApiService.resolveAlert(getBearerToken(), alertId)
+            if (!response.isSuccessful) {
+                Log.e("AlertRepository", "Falha na API: ${response.code()}")
+                throw Exception("Falha ao finalizar o alerta")
+            }
+        } catch (e: Exception) {
+            Log.e("AlertRepository", "Erro ao finalizar alerta via API", e)
+            throw e
+        }
+    }
 }

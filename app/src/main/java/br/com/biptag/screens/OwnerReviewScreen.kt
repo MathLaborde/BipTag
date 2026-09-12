@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import br.com.biptag.components.TopBar
 import br.com.biptag.navigation.Destination
+import br.com.biptag.repository.AlertRepository
+import kotlinx.coroutines.launch
 
 @Composable
 fun OwnerReviewScreen(navController: NavController, alertId: Int) {
@@ -34,6 +36,11 @@ fun OwnerReviewScreen(navController: NavController, alertId: Int) {
     var rfidIntact by remember { mutableStateOf(false) }
     var comment by remember { mutableStateOf("") }
     var rating by remember { mutableIntStateOf(0) }
+
+    // Novas variáveis para a chamada da API
+    val scope = rememberCoroutineScope()
+    var isLoading by remember { mutableStateOf(false) }
+    val alertRepository = remember { AlertRepository() }
 
     Scaffold(
         containerColor = Color(0xFFF8F9FA),
@@ -51,19 +58,37 @@ fun OwnerReviewScreen(navController: NavController, alertId: Int) {
                 shadowElevation = 8.dp,
                 border = BorderStroke(0.5.dp, Color(0xFFE5E7EB))
             ) {
-                Box(modifier = Modifier.fillMaxWidth().padding(20.dp, 16.dp)) {
+                Box(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(20.dp, 16.dp)) {
                     Button(
                         onClick = {
-                            // Conclui o fluxo e volta para a Home
-                            navController.navigate(Destination.InitialScreen.route) {
-                                popUpTo(0) { inclusive = true }
+                            // Dispara a rotina de finalização no Backend
+                            scope.launch {
+                                isLoading = true
+                                try {
+                                    // Aqui chamaremos a função do Repository para dar baixa!
+                                    // alertRepository.resolveAlert(alertId, rating, comment)
+
+                                    // Após o sucesso, volta para a Home limpando a pilha
+                                    navController.navigate(Destination.InitialScreen.route) {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                } catch (e: Exception) {
+                                    android.util.Log.e("OwnerReview", "Erro ao finalizar devolução", e)
+                                } finally {
+                                    isLoading = false
+                                }
                             }
                         },
+                        enabled = !isLoading,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF263E4D))
                     ) {
-                        Text("Enviar avaliação", fontWeight = FontWeight.Bold, color = Color.White)
+                        if (isLoading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Text("Enviar avaliação", fontWeight = FontWeight.Bold, color = Color.White)
+                        }
                     }
                 }
             }
@@ -76,7 +101,6 @@ fun OwnerReviewScreen(navController: NavController, alertId: Int) {
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {
-            // Header do Item Recebido
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier.size(48.dp).background(Color(0xFFE2F4EB), CircleShape),
@@ -87,13 +111,12 @@ fun OwnerReviewScreen(navController: NavController, alertId: Int) {
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     Text("Item recebido!", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
-                    Text("Bicicleta Caloi · entregue às 15h36", style = MaterialTheme.typography.bodySmall, color = Color(0xFF94A3B8))
+                    Text("Avalie para encerrar o processo", style = MaterialTheme.typography.bodySmall, color = Color(0xFF94A3B8))
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Card: É o seu item?
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -105,7 +128,7 @@ fun OwnerReviewScreen(navController: NavController, alertId: Int) {
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         SelectableButton(
-                            text = "Sim, é o meu item",
+                            text = "Sim, é o meu",
                             isSelected = isMyItem == true,
                             onClick = { isMyItem = true },
                             modifier = Modifier.weight(1f)
@@ -122,7 +145,6 @@ fun OwnerReviewScreen(navController: NavController, alertId: Int) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Card: Estado do item
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -140,7 +162,6 @@ fun OwnerReviewScreen(navController: NavController, alertId: Int) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Card: Avaliação do Motorista
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
