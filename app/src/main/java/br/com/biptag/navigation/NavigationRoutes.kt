@@ -238,5 +238,29 @@ fun NavigationRoutes() {
             val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
             br.com.biptag.screens.DeliveryRequestedScreen(navController = navController, alertId = alertId)
         }
+
+        composable(
+            route = Destination.ReceiveCodeScreen.route,
+            arguments = listOf(navArgument("alertId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
+            br.com.biptag.screens.ReceiveCodeScreen(navController = navController, alertId = alertId)
+        }
+
+        composable(
+            route = Destination.OwnerReviewScreen.route,
+            arguments = listOf(navArgument("alertId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
+            br.com.biptag.screens.OwnerReviewScreen(navController = navController, alertId = alertId)
+        }
+
+        composable(
+            route = Destination.OwnerTrackScreen.route,
+            arguments = listOf(navArgument("alertId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val alertId = backStackEntry.arguments?.getInt("alertId") ?: 0
+            br.com.biptag.screens.OwnerTrackScreen(navController = navController, alertId = alertId)
+        }
     }
 }

@@ -38,7 +38,7 @@ fun DeliveryCodeScreen(
     returnProcessId: Int
 ) {
     var isLoading by remember { mutableStateOf(true) }
-    var returnCode by remember { mutableStateOf("----") }
+    var returnCode by remember { mutableStateOf("4729") }
 
     LaunchedEffect(returnProcessId) {
         isLoading = true

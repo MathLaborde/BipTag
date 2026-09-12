@@ -119,4 +119,24 @@ sealed class Destination(val route: String) {
             return "delivery_requested_screen/$alertId"
         }
     }
+
+    object ReceiveCodeScreen: Destination("receive_code_screen/{alertId}"){
+        fun createRoute(alertId: Int): String {
+            return "receive_code_screen/$alertId"
+        }
+    }
+
+    object OwnerReviewScreen: Destination("owner_review_screen/{alertId}"){
+        fun createRoute(alertId: Int): String {
+            return "owner_review_screen/$alertId"
+        }
+    }
+
+    object OwnerTrackScreen: Destination("owner_track_screen/{alertId}"){
+        fun createRoute(alertId: Int): String {
+            return "owner_track_screen/$alertId"
+        }
+    }
+
+
 }
