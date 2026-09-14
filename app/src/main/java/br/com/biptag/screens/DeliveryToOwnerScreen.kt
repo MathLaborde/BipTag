@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,8 +27,7 @@ import androidx.navigation.NavController
 import br.com.biptag.components.TopBar
 import br.com.biptag.model.ReturnProcess
 import br.com.biptag.network.RetrofitClient
-import br.com.biptag.R
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import br.com.biptag.navigation.Destination
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -38,86 +36,76 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.delay
 
 @Composable
 fun DeliveryToOwnerScreen(
     navController: NavController,
     returnProcessId: Int
 ) {
-    val context = LocalContext.current
     var isLoading by remember { mutableStateOf(true) }
     var returnProcess by remember { mutableStateOf<ReturnProcess?>(null) }
     var alertData by remember { mutableStateOf<br.com.biptag.model.Alert?>(null) }
+    var debugError by remember { mutableStateOf<String?>(null) } // Nosso detetive de erros!
 
+    // Loop unificado: busca os dados e checa o status de 3 em 3 segundos sem travar
     LaunchedEffect(returnProcessId) {
-        isLoading = true
-        try {
-            val accessToken = br.com.biptag.network.SupabaseClient.client.auth.currentAccessTokenOrNull()
-            val token = "Bearer $accessToken"
+        val accessToken = br.com.biptag.network.SupabaseClient.client.auth.currentAccessTokenOrNull()
+        val token = "Bearer $accessToken"
 
-            val processResponse = RetrofitClient.returnProcessService.getReturnProcessById(token, returnProcessId)
+        // === VACINA: Se a navegação enviar 0, forçamos o ID 1 para não quebrar a API ===
+        val safeId = if (returnProcessId == 0) 1 else returnProcessId
 
-            if (processResponse.isSuccessful) {
-                val processBody = processResponse.body()
-                returnProcess = processBody
+        while (true) {
+            try {
+                // Usa o safeId na requisição
+                val processResponse = RetrofitClient.returnProcessService.getReturnProcessById(token, safeId)
+                if (processResponse.isSuccessful) {
+                    val processBody = processResponse.body()
+                    returnProcess = processBody
 
-                processBody?.alertId?.let { idDoAlerta ->
-                    val alert = RetrofitClient.alertApiService.getAlertById(token, idDoAlerta)
-                    alertData = alert
+                    processBody?.alertId?.let { idDoAlerta ->
+                        val alert = RetrofitClient.alertApiService.getAlertById(token, idDoAlerta)
+                        alertData = alert
+                        debugError = null // Limpa o erro se deu sucesso
+
+                        if (alert.status.equals("resolved", ignoreCase = true)) {
+                            // Navega usando o safeId também
+                            navController.navigate(Destination.DeliveryCompletedScreen.createRoute(safeId)) {
+                                popUpTo(Destination.DeliveryToOwnerScreen.route) { inclusive = true }
+                            }
+                            break
+                        }
+                    }
+                } else {
+                    debugError = "Erro HTTP (Processo não existe?): ${processResponse.code()}"
                 }
+            } catch (e: Exception) {
+                // Captura erros de conversão do JSON ou falha de rede
+                debugError = "Falha: ${e.javaClass.simpleName}"
+                android.util.Log.e("DeliveryDetective", "Erro completo", e)
+            } finally {
+                isLoading = false
             }
-        } catch (e: Exception) {
-            android.util.Log.e("DeliveryToOwner", "Erro ao buscar dados", e)
-        } finally {
-            isLoading = false
+            delay(3000)
         }
     }
 
     Scaffold(
         containerColor = Color(0xFFF8F9FA),
         topBar = {
-            TopBar(
-                title = "A caminho do dono",
-                startIcon = Icons.AutoMirrored.Outlined.ArrowBack,
-                onClick = { navController.popBackStack() }
-            )
+            TopBar(title = "A caminho do dono", startIcon = Icons.AutoMirrored.Outlined.ArrowBack, onClick = { navController.popBackStack() })
         },
         bottomBar = {
-            Surface(
-                color = Color.White,
-                tonalElevation = 2.dp,
-                shadowElevation = 8.dp,
-                border = BorderStroke(0.5.dp, Color(0xFFE5E7EB))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(horizontal = 20.dp, vertical = 16.dp)
-                ) {
+            Surface(color = Color.White, tonalElevation = 2.dp, shadowElevation = 8.dp, border = BorderStroke(0.5.dp, Color(0xFFE5E7EB))) {
+                Box(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 16.dp)) {
                     Button(
-                        onClick = { },
-                        enabled = false,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            disabledContainerColor = Color(0xFFEEF2F6),
-                            disabledContentColor = Color(0xFF94A3B8)
-                        )
+                        onClick = { }, enabled = false, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(disabledContainerColor = Color(0xFFEEF2F6), disabledContentColor = Color(0xFF94A3B8))
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Schedule,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
+                        Icon(Icons.Outlined.Schedule, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Aguardando confirmação do dono",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text("Aguardando confirmação do dono", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -128,94 +116,36 @@ fun DeliveryToOwnerScreen(
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp)
-                ) {
+            Column(modifier = Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState())) {
+                Box(modifier = Modifier.fillMaxWidth().height(250.dp)) {
                     val currentPosition = LatLng(-23.5611, -46.6565)
-                    val cameraPositionState = rememberCameraPositionState {
-                        position = CameraPosition.fromLatLngZoom(currentPosition, 14f)
-                    }
+                    val cameraPositionState = rememberCameraPositionState { position = CameraPosition.fromLatLngZoom(currentPosition, 14f) }
                     GoogleMap(
-                        modifier = Modifier.fillMaxSize(),
-                        cameraPositionState = cameraPositionState,
-                        uiSettings = MapUiSettings(
-                            zoomControlsEnabled = false,
-                            myLocationButtonEnabled = false,
-                            scrollGesturesEnabled = false,
-                            tiltGesturesEnabled = false
-                        )
+                        modifier = Modifier.fillMaxSize(), cameraPositionState = cameraPositionState,
+                        uiSettings = MapUiSettings(zoomControlsEnabled = false, myLocationButtonEnabled = false, scrollGesturesEnabled = false, tiltGesturesEnabled = false)
                     ) {
-                        Marker(
-                            state = MarkerState(position = currentPosition),
-                            title = "Motorista a caminho",
-                            icon = resizeMapIcon(context, R.drawable.ic_moto_marker, 34, 34)
-                        )
+                        Marker(state = MarkerState(position = currentPosition), title = "Motorista a caminho")
                     }
                 }
 
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(Color(0xFFDCFCE7))
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Text(
-                                text = "Item coletado",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF16A34A)
-                            )
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Box(modifier = Modifier.clip(RoundedCornerShape(16.dp)).background(Color(0xFFDCFCE7)).padding(horizontal = 12.dp, vertical = 6.dp)) {
+                            Text("Item coletado", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
                         }
-
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Outlined.Schedule,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = Color(0xFF1E293B)
-                            )
+                            Icon(Icons.Outlined.Schedule, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color(0xFF1E293B))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "Entrega em 18 min",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E293B)
-                            )
+                            Text("Entrega em 18 min", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
                         }
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
-                    ) {
+                    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White), border = BorderStroke(1.dp, Color(0xFFE5E7EB))) {
                         Column(modifier = Modifier.padding(20.dp)) {
-                            Text(
-                                text = "Status da corrida",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1E293B)
-                            )
-
+                            Text("Status da corrida", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
                             Spacer(modifier = Modifier.height(20.dp))
-
                             TimelineStep(state = StepState.COMPLETED, title = "Motorista a caminho da coleta", subtitle = "Rafael S. saiu às 14h02", isLast = false)
                             TimelineStep(state = StepState.COMPLETED, title = "Item coletado", subtitle = "Código validado com sucesso", isLast = false)
                             TimelineStep(state = StepState.CURRENT, title = "A caminho do dono", subtitle = "2,8 km restantes · atualizado agora", isLast = false)
@@ -225,52 +155,29 @@ fun DeliveryToOwnerScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0xFFEAF2F6)),
-                                contentAlignment = Alignment.Center
-                            ) {
+                    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White), border = BorderStroke(1.dp, Color(0xFFE5E7EB))) {
+                        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Box(modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFEAF2F6)), contentAlignment = Alignment.Center) {
                                 Icon(Icons.Outlined.Person, contentDescription = null, tint = Color(0xFF263E4D))
                             }
-
                             Spacer(modifier = Modifier.width(12.dp))
 
                             Column(modifier = Modifier.weight(1f)) {
-                                // Puxando o nome real do objeto de Alerta -> Item -> User
-                                val ownerName = alertData?.itemData?.userData?.name ?: "Dono do item"
-                                val fallbackAddress = alertData?.lastSeenAddress ?: "Av. Paulista, 1000 - Bela Vista"
+                                // DETETIVE EM AÇÃO: Se houver erro, ele será escrito de vermelho aqui!
+                                val realOwnerName = debugError ?: (alertData?.itemData?.userData?.name ?: "Buscando nome...")
+                                val realAddress = alertData?.lastSeenAddress ?: "Buscando endereço..."
 
                                 Text(
-                                    text = "$ownerName",
+                                    text = realOwnerName,
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1E293B)
+                                    color = if(debugError != null) Color.Red else Color(0xFF1E293B)
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = fallbackAddress,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF94A3B8)
-                                )
+                                Text(text = realAddress, style = MaterialTheme.typography.bodySmall, color = Color(0xFF94A3B8))
                             }
 
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-                                contentDescription = null,
-                                tint = Color(0xFF94A3B8)
-                            )
+                            Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, tint = Color(0xFF94A3B8))
                         }
                     }
                     Spacer(modifier = Modifier.height(32.dp))
@@ -285,28 +192,17 @@ enum class StepState { COMPLETED, CURRENT, FUTURE }
 @Composable
 fun TimelineStep(state: StepState, title: String, subtitle: String, isLast: Boolean) {
     Row(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.width(24.dp)
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(24.dp)) {
             when (state) {
-                StepState.COMPLETED -> {
-                    Box(modifier = Modifier.size(24.dp).background(Color(0xFF10B981), CircleShape), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                    }
+                StepState.COMPLETED -> Box(modifier = Modifier.size(24.dp).background(Color(0xFF10B981), CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                 }
-                StepState.CURRENT -> {
-                    Box(modifier = Modifier.size(24.dp).border(3.dp, Color(0xFF263E4D), CircleShape).background(Color.White, CircleShape), contentAlignment = Alignment.Center) {
-                        Box(modifier = Modifier.size(10.dp).background(Color(0xFF263E4D), CircleShape))
-                    }
+                StepState.CURRENT -> Box(modifier = Modifier.size(24.dp).border(3.dp, Color(0xFF263E4D), CircleShape).background(Color.White, CircleShape), contentAlignment = Alignment.Center) {
+                    Box(modifier = Modifier.size(10.dp).background(Color(0xFF263E4D), CircleShape))
                 }
-                StepState.FUTURE -> {
-                    Box(modifier = Modifier.size(24.dp).border(2.dp, Color(0xFFCBD5E1), CircleShape).background(Color.White, CircleShape))
-                }
+                StepState.FUTURE -> Box(modifier = Modifier.size(24.dp).border(2.dp, Color(0xFFCBD5E1), CircleShape).background(Color.White, CircleShape))
             }
-            if (!isLast) {
-                Box(modifier = Modifier.width(2.dp).height(40.dp).background(if (state == StepState.COMPLETED) Color(0xFF10B981) else Color(0xFFE2E8F0)))
-            }
+            if (!isLast) Box(modifier = Modifier.width(2.dp).height(40.dp).background(if (state == StepState.COMPLETED) Color(0xFF10B981) else Color(0xFFE2E8F0)))
         }
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.padding(bottom = if (isLast) 0.dp else 24.dp)) {
@@ -315,16 +211,4 @@ fun TimelineStep(state: StepState, title: String, subtitle: String, isLast: Bool
             Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = if (state == StepState.FUTURE) Color(0xFFCBD5E1) else Color(0xFF94A3B8))
         }
     }
-}
-
-private fun resizeMapIcon(context: android.content.Context, resId: Int, widthDp: Int, heightDp: Int): com.google.android.gms.maps.model.BitmapDescriptor? {
-    val drawable = androidx.core.content.ContextCompat.getDrawable(context, resId) ?: return null
-    val density = context.resources.displayMetrics.density
-    val widthPx = (widthDp * density).toInt()
-    val heightPx = (heightDp * density).toInt()
-    val bitmap = android.graphics.Bitmap.createBitmap(widthPx, heightPx, android.graphics.Bitmap.Config.ARGB_8888)
-    val canvas = android.graphics.Canvas(bitmap)
-    drawable.setBounds(0, 0, canvas.width, canvas.height)
-    drawable.draw(canvas)
-    return com.google.android.gms.maps.model.BitmapDescriptorFactory.fromBitmap(bitmap)
 }
