@@ -33,4 +33,10 @@ interface ReturnProcessService {
         @Header("Authorization") token: String,
         @Path("alertId") alertId: Int
     ): Response<ReturnProcess>
+
+    @PATCH("api/v1/return-processes/{id}/complete")
+    suspend fun completeReturnProcess(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): Response<ReturnProcess>
 }

@@ -30,6 +30,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import br.com.biptag.components.TopBar
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,7 +121,7 @@ fun AvailabilityScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 1. Card Local de Entrega
+            // 1. Card Local de Entrega com Google Maps
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -131,6 +137,34 @@ fun AvailabilityScreen(
                         letterSpacing = 1.sp
                     )
                     Spacer(modifier = Modifier.height(12.dp))
+
+                    // --- INÍCIO DO GOOGLE MAPS ---
+                    val deliveryLocation = LatLng(-23.5611, -46.6565) // Coordenadas da Av. Paulista
+                    val cameraPositionState = rememberCameraPositionState {
+                        position = CameraPosition.fromLatLngZoom(deliveryLocation, 15f)
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(140.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(12.dp))
+                    ) {
+                        GoogleMap(
+                            modifier = Modifier.fillMaxSize(),
+                            cameraPositionState = cameraPositionState
+                        ) {
+                            Marker(
+                                state = MarkerState(position = deliveryLocation),
+                                title = "Local de Entrega"
+                            )
+                        }
+                    }
+                    // --- FIM DO GOOGLE MAPS ---
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier

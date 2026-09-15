@@ -50,16 +50,15 @@ fun DeliveryToOwnerScreen(
 
     // Loop unificado: busca os dados e checa o status de 3 em 3 segundos sem travar
     LaunchedEffect(returnProcessId) {
-        val accessToken = br.com.biptag.network.SupabaseClient.client.auth.currentAccessTokenOrNull()
-        val token = "Bearer $accessToken"
+        isLoading = true
+        try {
+            val accessToken = br.com.biptag.network.SupabaseClient.client.auth.currentAccessTokenOrNull()
+            val token = "Bearer $accessToken"
 
-        // === VACINA: Se a navegação enviar 0, forçamos o ID 1 para não quebrar a API ===
-        val safeId = if (returnProcessId == 0) 1 else returnProcessId
+            // Loop que verifica o status na API a cada 5 segundos
+            while (true) {
+                val processResponse = RetrofitClient.returnProcessService.getReturnProcessById(token, returnProcessId)
 
-        while (true) {
-            try {
-                // Usa o safeId na requisição
-                val processResponse = RetrofitClient.returnProcessService.getReturnProcessById(token, safeId)
                 if (processResponse.isSuccessful) {
                     val processBody = processResponse.body()
                     returnProcess = processBody
@@ -67,27 +66,26 @@ fun DeliveryToOwnerScreen(
                     processBody?.alertId?.let { idDoAlerta ->
                         val alert = RetrofitClient.alertApiService.getAlertById(token, idDoAlerta)
                         alertData = alert
-                        debugError = null // Limpa o erro se deu sucesso
-
-                        if (alert.status.equals("resolved", ignoreCase = true)) {
-                            // Navega usando o safeId também
-                            navController.navigate(Destination.DeliveryCompletedScreen.createRoute(safeId)) {
-                                popUpTo(Destination.DeliveryToOwnerScreen.route) { inclusive = true }
-                            }
-                            break
-                        }
                     }
-                } else {
-                    debugError = "Erro HTTP (Processo não existe?): ${processResponse.code()}"
+
+                    isLoading = false
+
+                    // A tela só avança se o status no backend for atualizado para "completed"
+                    if (processBody?.status == "completed") {
+                        navController.navigate(br.com.biptag.navigation.Destination.DeliveryCompletedScreen.createRoute(returnProcessId)) {
+                            // Limpa a tela atual do histórico para não voltar pra cá acidentalmente
+                            popUpTo(br.com.biptag.navigation.Destination.DeliveryToOwnerScreen.route) { inclusive = true }
+                        }
+                        break // Quebra o loop para parar de consultar a API
+                    }
                 }
-            } catch (e: Exception) {
-                // Captura erros de conversão do JSON ou falha de rede
-                debugError = "Falha: ${e.javaClass.simpleName}"
-                android.util.Log.e("DeliveryDetective", "Erro completo", e)
-            } finally {
-                isLoading = false
+
+                // Aguarda 5 segundos antes de perguntar para a API de novo
+                delay(5000)
             }
-            delay(3000)
+        } catch (e: Exception) {
+            android.util.Log.e("DeliveryToOwner", "Erro ao buscar dados", e)
+            isLoading = false
         }
     }
 
