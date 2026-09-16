@@ -1,6 +1,7 @@
 package br.com.biptag.screens
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,7 +37,8 @@ import br.com.biptag.navigation.Destination
 import br.com.biptag.repository.AuthRepository
 import br.com.biptag.repository.FoundReportRepository
 import br.com.biptag.repository.ItemRepository
-import br.com.biptag.repository.ReturnProcessRepository
+import br.com.biptag.network.RetrofitClient
+import io.github.jan.supabase.auth.auth
 import br.com.biptag.ui.theme.BipTagTheme
 import br.com.biptag.ui.theme.SuccessGreen
 import br.com.biptag.ui.theme.SuccessGreenBorder
@@ -49,37 +52,28 @@ fun RequestDriverScreen(
     foundReportId: Int
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    // Instanciando os Repositories diretamente na tela
     val foundReportRepo = remember { FoundReportRepository() }
     val itemRepo = remember { ItemRepository() }
-    val returnProcessRepo = remember { ReturnProcessRepository() }
     val authRepo = remember { AuthRepository() }
 
-    // Estados da Tela
     var selectedTime by remember { mutableStateOf("Agora") }
     var isLoading by remember { mutableStateOf(true) }
 
-    // Dados reais que virão do banco
     var itemName by remember { mutableStateOf("") }
     var itemCode by remember { mutableStateOf("") }
     var itemAddress by remember { mutableStateOf("") }
     var ownerName by remember { mutableStateOf("") }
     var alertId by remember { mutableStateOf(0) }
 
-    // Dispara a busca no banco de dados assim que a tela abre
     LaunchedEffect(foundReportId) {
         isLoading = true
         try {
-            // O foundReportId que chega na rota na verdade é o alertId vindo da tela anterior
             val realAlertId = foundReportId
-            Log.d("RequestDriver", "Buscando pelo Alert ID: $realAlertId")
-
-            // Agora usamos a função certa do repositório!
             val report = foundReportRepo.getFoundReportByAlertId(realAlertId)
 
             if (report != null) {
-                Log.d("RequestDriver", "Report encontrado! itemId: ${report.itemId}")
                 alertId = report.alertId
                 itemAddress = report.foundAddress
 
@@ -90,12 +84,11 @@ fun RequestDriverScreen(
                 val currentUser = authRepo.getCurrentUser()
                 ownerName = currentUser?.name ?: "Usuário"
             } else {
-                Log.e("RequestDriver", "Nenhum FoundReport para o Alert ID: $realAlertId, report: ${report}")
                 itemName = "Objeto não encontrado"
                 itemAddress = "Endereço não encontrado"
             }
         } catch (e: Exception) {
-            Log.e("RequestDriver", "Erro ao buscar dados no Supabase", e)
+            Log.e("RequestDriver", "Erro ao buscar dados", e)
             itemName = "Erro de conexão"
         } finally {
             isLoading = false
@@ -120,24 +113,37 @@ fun RequestDriverScreen(
                     onClick = {
                         coroutineScope.launch {
                             isLoading = true
+                            try {
+                                val accessToken = br.com.biptag.network.SupabaseClient.client.auth.currentAccessTokenOrNull()
+                                val token = "Bearer $accessToken"
 
-                            val newProcess = ReturnProcess(
-                                alertId = alertId,
-                                foundReportId = foundReportRepo.getFoundReportByAlertId(alertId)?.id ?: 0,
-                                returnType = "home_delivery",
-                                deliveryFee = 18.0,
-                                status = "pending"
-                            )
+                                // Busca o report real associado ao alerta atual
+                                val report = foundReportRepo.getFoundReportByAlertId(alertId)
+                                val reportId = report?.id ?: 1 // Garante que nunca será 0
 
-                            val created = returnProcessRepo.createReturnProcess(newProcess)
+                                val newProcess = ReturnProcess(
+                                    alertId = alertId,
+                                    foundReportId = reportId,
+                                    returnType = "home_delivery",
+                                    deliveryFee = 18.0,
+                                    status = "in_transit"
+                                )
 
-                            if (created != null && created.id != null) {
-                                // Redireciona para a tela de acompanhamento se der certo
-                                navController.navigate(Destination.TrackReturnScreen.createRoute(created.id!!)) {
-                                    popUpTo(Destination.RequestDriverScreen.route) { inclusive = true }
+                                val response = RetrofitClient.returnProcessService.createReturnProcess(token, newProcess)
+
+                                if (response.isSuccessful) {
+                                    navController.navigate(Destination.TrackReturnScreen.createRoute(alertId)) {
+                                        popUpTo(Destination.RequestDriverScreen.route) { inclusive = true }
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Erro ao criar processo de devolução", Toast.LENGTH_SHORT).show()
                                 }
+                            } catch (e: Exception) {
+                                Log.e("RequestDriver", "Erro de rede", e)
+                                Toast.makeText(context, "Erro de conexão com a API", Toast.LENGTH_SHORT).show()
+                            } finally {
+                                isLoading = false
                             }
-                            isLoading = false
                         }
                     }
                 )
@@ -424,13 +430,5 @@ fun SuccessBanner(ownerName: String) {
                 color = SuccessGreenDark
             )
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun RequestDriverScreenPreview() {
-    BipTagTheme {
-        RequestDriverScreen(navController = rememberNavController(), foundReportId = 1)
     }
 }

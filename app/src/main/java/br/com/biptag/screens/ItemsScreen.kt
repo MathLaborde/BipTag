@@ -256,12 +256,13 @@ fun InventoryItem(
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
-    val statusText = when (currentStatus) {
+    val statusText = when (currentStatus?.uppercase()) {
         "CREATED" -> "Criado"
         "VERIFIED" -> "Verificado"
         "STOLEN" -> "Roubado"
         "LOST" -> "Perdido"
-        else -> "Desconhecido"
+        "SAFE" -> ""
+        else -> ""
     }
 
     Card(
@@ -315,37 +316,39 @@ fun InventoryItem(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                color = statusColor,
-                                shape = CircleShape
-                            )
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            if (statusText == "Verificado") {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(14.dp),
-                                    tint = statusTextColor
+                    if (statusText.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    color = statusColor,
+                                    shape = CircleShape
                                 )
-                                Spacer(modifier = Modifier.width(4.dp))
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                if (statusText == "Verificado") {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(14.dp),
+                                        tint = statusTextColor
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                }
+                                Text(
+                                    text = statusText,
+                                    color = statusTextColor,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
                             }
-                            Text(
-                                text = statusText,
-                                color = statusTextColor,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.SemiBold
-                            )
                         }
-                    }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically

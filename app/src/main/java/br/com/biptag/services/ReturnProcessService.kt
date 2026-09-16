@@ -10,6 +10,7 @@ interface ReturnProcessService {
         @Header("Authorization") token: String
     ): Response<List<ReturnProcess>>
 
+    // A ROTA DE CRIAR JÁ ESTAVA AQUI!
     @POST("api/v1/return-processes")
     suspend fun createReturnProcess(
         @Header("Authorization") token: String,
@@ -22,6 +23,7 @@ interface ReturnProcessService {
         @Path("id") id: Int,
         @Body process: ReturnProcess
     ): Response<ReturnProcess>
+
     @GET("api/v1/return-processes/{id}")
     suspend fun getReturnProcessById(
         @Header("Authorization") token: String,

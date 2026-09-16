@@ -26,6 +26,8 @@ import br.com.biptag.navigation.Destination
 import br.com.biptag.network.RetrofitClient
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.foundation.clickable // Adicione este também
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +41,7 @@ fun DeliveryCompletedScreen(
     var itemName by remember { mutableStateOf("Carregando...") }
     var itemCode by remember { mutableStateOf("...") }
     var ownerName by remember { mutableStateOf("...") }
+    var rating by remember { mutableStateOf(0) } // Começa com 0 estrelas
 
     // Busca os dados reais na API assim que a tela abre
     LaunchedEffect(returnProcessId) {
@@ -259,9 +262,20 @@ fun DeliveryCompletedScreen(
                     ) {
                         Text("Avalie o motorista parceiro", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
                         Spacer(modifier = Modifier.height(16.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            repeat(5) {
-                                Icon(Icons.Outlined.StarBorder, contentDescription = "Estrela", tint = Color(0xFFFBBF24), modifier = Modifier.size(32.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            for (i in 1..5) {
+                                Icon(
+                                    imageVector = if (i <= rating) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                                    contentDescription = "Estrela $i",
+                                    tint = Color(0xFFFBBF24),
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .clickable { rating = i }
+                                        .padding(4.dp)
+                                )
                             }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
