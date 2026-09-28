@@ -10,27 +10,34 @@ import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.ArrowForwardIos
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.Notes
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -63,6 +70,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -97,7 +105,10 @@ fun ItemFormScreen(navController: NavController) {
             )
         },
     ) { paddingValues ->
-        ContentItemFormScreen(modifier = Modifier.padding(paddingValues), navController = navController)
+        ContentItemFormScreen(
+            modifier = Modifier.padding(paddingValues),
+            navController = navController
+        )
     }
 }
 
@@ -159,67 +170,144 @@ fun ContentItemFormScreen(modifier: Modifier, navController: NavController) {
             .padding(16.dp)
             .verticalScroll(scrollState),
     ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { /* Ação de escanear com IA */ },
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFFE8F4F8),
+            border = BorderStroke(1.dp, Color(0xFFCBE3EF))
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(Color(0xFF1E323D), shape = RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.AutoAwesome,
+                        contentDescription = "IA Icon",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Escanear nota fiscal",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1E323D)
+                    )
+                    Text(
+                        text = "Preencha os dados com IA",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF64748B)
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Outlined.ArrowForwardIos,
+                    contentDescription = null,
+                    tint = Color(0xFF1E323D)
+                )
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "ou preencha manualmente",
+                modifier = Modifier.padding(horizontal = 12.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = Color(0xFF94A3B8)
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
+
         UserImage(
             profileImage = itemImage,
             launchImage = launchImage
         )
 
-        Spacer(Modifier.size(16.dp))
+        Spacer(Modifier.height(16.dp))
 
         Text(
             text = "Nome do item",
             modifier = Modifier.padding(bottom = 8.dp),
-            style = MaterialTheme.typography.labelMedium
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         BipTagTextField(
             value = name,
             onValueChange = { name = it },
             placeholder = {
                 Text(
-                    text = "Ex.: Notebook Dell...",
+                    text = "Ex.: Notebook Dell Inspiron",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 15.sp
                 )
             },
             leadingIcon = {
                 Icon(
-                    imageVector =  Icons.Outlined.Inventory2,
+                    imageVector = Icons.Outlined.Inventory2,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
         )
+
+        Spacer(Modifier.height(16.dp))
+
         Text(
             text = "Descrição",
             modifier = Modifier.padding(bottom = 8.dp),
-            style = MaterialTheme.typography.labelMedium
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         BipTagTextField(
             value = description,
             onValueChange = { description = it },
             placeholder = {
                 Text(
-                    "Marca, modelo, número de série...",
+                    text = "Marca, modelo, número de série...",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 15.sp
                 )
             },
             leadingIcon = {
-                Icon(
-                    imageVector = Icons.Outlined.Category,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(top = 12.dp),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Notes,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             },
-            modifier = Modifier
-                .height(100.dp),
+            modifier = Modifier.height(100.dp),
             singleLine = false
         )
+
+        Spacer(Modifier.height(16.dp))
 
         Text(
             text = "Categoria",
             modifier = Modifier.padding(bottom = 8.dp),
-            style = MaterialTheme.typography.labelMedium
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         ExposedDropdownMenuBox(
@@ -233,14 +321,14 @@ fun ContentItemFormScreen(modifier: Modifier, navController: NavController) {
                 readOnly = true,
                 placeholder = {
                     Text(
-                        text = "Selecione uma categoria",
+                        text = "Selecione...",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 15.sp
                     )
                 },
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Outlined.Category,
+                        imageVector = Icons.Outlined.GridView,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -278,7 +366,7 @@ fun ContentItemFormScreen(modifier: Modifier, navController: NavController) {
             }
         }
 
-        Spacer(Modifier.size(16.dp))
+        Spacer(Modifier.height(24.dp))
 
         PrimaryButton(
             enabled = !isSaving,
@@ -316,11 +404,20 @@ fun ContentItemFormScreen(modifier: Modifier, navController: NavController) {
                         withContext(Dispatchers.Main) {
                             isSaving = false
 
-                            navController.previousBackStackEntry?.savedStateHandle?.set("deve_atualizar", true)
+                            navController.previousBackStackEntry?.savedStateHandle?.set(
+                                "deve_atualizar",
+                                true
+                            )
 
                             itemSalvo?.id?.let { idGerado ->
-                                navController.navigate(Destination.BindTagScreen.createRoute(idGerado)) {
-                                    popUpTo(Destination.InventoryFormScreen.route) { inclusive = true }
+                                navController.navigate(
+                                    Destination.BindTagScreen.createRoute(
+                                        idGerado
+                                    )
+                                ) {
+                                    popUpTo(Destination.InventoryFormScreen.route) {
+                                        inclusive = true
+                                    }
                                 }
                             } ?: run {
                                 navController.popBackStack()
@@ -335,7 +432,7 @@ fun ContentItemFormScreen(modifier: Modifier, navController: NavController) {
                     }
                 }
             },
-            text = if (isSaving) "Salvando..." else stringResource(R.string.save)
+            text = if (isSaving) "Salvando..." else "Salvar item"
         )
     }
 }
@@ -356,7 +453,7 @@ fun UserImage(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(144.dp)
+            .height(160.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.secondary)
             .drawBehind {
@@ -403,13 +500,13 @@ fun UserImage(
 
                 Text(
                     text = "Adicionar foto do item",
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.outlineVariant
                 )
-
+                Spacer(modifier = Modifier.height(5.dp))
                 Text(
                     text = "Toque para tirar ou enviar uma foto",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -425,37 +522,5 @@ fun UserImage(
 private fun ContentItemFormScreenPreview() {
     BipTagTheme {
         ContentItemFormScreen(modifier = Modifier, rememberNavController())
-    }
-}
-@Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_NO,
-)
-@Composable
-private fun ItemFormScreenPreview() {
-
-    val context = LocalContext.current
-
-    var itemImage by remember {
-        mutableStateOf<Bitmap?>(null)
-    }
-
-    val launchImage = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        if (uri != null) {
-            if (Build.VERSION.SDK_INT < 28) {
-                itemImage = MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-            } else {
-                val source = ImageDecoder.createSource(context.contentResolver, uri)
-                itemImage = ImageDecoder.decodeBitmap(source)
-            }
-        }
-    }
-
-    BipTagTheme {
-        UserImage(
-            profileImage = itemImage,
-            launchImage = launchImage
-        )
     }
 }

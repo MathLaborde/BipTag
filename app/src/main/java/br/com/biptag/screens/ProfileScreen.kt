@@ -38,9 +38,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -54,6 +56,16 @@ import br.com.biptag.repository.AuthRepository
 import br.com.biptag.ui.theme.BipTagTheme
 import kotlinx.coroutines.launch
 
+// Função para formatar o telefone
+fun formatPhoneNumber(phone: String): String {
+    val digits = phone.filter { it.isDigit() }
+    return if (digits.length == 11) {
+        "(${digits.substring(0, 2)}) ${digits.substring(2, 7)}-${digits.substring(7)}"
+    } else {
+        phone
+    }
+}
+
 @Composable
 fun ProfileScreen(navController: NavController) {
     val isPreview = LocalInspectionMode.current
@@ -66,9 +78,9 @@ fun ProfileScreen(navController: NavController) {
     val user = remember(authRepository) {
         authRepository?.getCurrentUser() ?: if (isPreview) {
             User(
-                name = "Usuário Teste",
-                email = "teste@biptag.com.br",
-                phoneNumber = "(11) 99999-9999"
+                name = "Maria Silva",
+                email = "maria@email.com",
+                phoneNumber = "11999999999"
             )
         } else null
     }
@@ -92,7 +104,7 @@ fun ProfileScreen(navController: NavController) {
                             try {
                                 authRepository?.signOut()
                             } catch (_: Exception) {
-                                // Log error or handle it
+
                             }
                             navController.navigate(Destination.LoginScreen.route) {
                                 popUpTo(Destination.ProfileScreen.route) { inclusive = true }
@@ -118,7 +130,7 @@ fun ProfileContentScreen(
     user: User,
     onLogout: () -> Unit
 ) {
-    var notifications by remember { mutableStateOf(false) }
+    var notifications by remember { mutableStateOf(true) }
 
     Column(
         modifier = modifier
@@ -134,7 +146,7 @@ fun ProfileContentScreen(
             Surface(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.size(80.dp)
+                modifier = Modifier.size(90.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
@@ -150,71 +162,70 @@ fun ProfileContentScreen(
 
             Text(
                 text = user.name,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.size(4.dp))
 
             Text(
                 text = user.email,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = stringResource(R.string.personal_data),
+                text = stringResource(R.string.personal_data).uppercase(),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outlineVariant
+                color = Color(0xFF64748B)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             ProfileCardItem(
                 label = stringResource(R.string.phone),
-                value = user.phoneNumber,
-                modifier = Modifier.clickable{}
+                value = formatPhoneNumber(user.phoneNumber),
+                modifier = Modifier.clickable {}
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             ProfileCardItem(
                 label = stringResource(R.string.notifications),
-                value = "Ativadas",
-                modifier = Modifier.clickable{},
+                value = if (notifications) "Ativadas" else "Desativadas",
+                modifier = Modifier.clickable { notifications = !notifications },
                 trailingContent = {
                     Switch(
-                        modifier = Modifier
-                            .scale(0.9f),
+                        modifier = Modifier.scale(0.85f),
                         checked = notifications,
                         onCheckedChange = { notifications = it },
-                        colors = SwitchDefaults
-                            .colors(
-                                checkedThumbColor = MaterialTheme.colorScheme.secondary,
-                                checkedTrackColor = MaterialTheme.colorScheme.primary,
-                                uncheckedThumbColor = MaterialTheme.colorScheme.primary,
-                                uncheckedTrackColor = MaterialTheme.colorScheme.secondary,
-                            )
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.primary,
+                            uncheckedTrackColor = Color(0xFFE2E8F0),
+                        )
                     )
                 }
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             ProfileCardItem(
-                modifier = Modifier.clickable{
-                    navController.navigate(
-                        Destination.CreditsScreen.route
-                    )
+                modifier = Modifier.clickable {
+                    navController.navigate(Destination.CreditsScreen.route)
                 },
                 label = stringResource(R.string.app_credits),
                 trailingContent = {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = Color(0xFF64748B),
                         modifier = Modifier
                     )
                 }
@@ -226,7 +237,7 @@ fun ProfileContentScreen(
         Text(
             text = stringResource(R.string.logout),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = Color(0xFF334155),
             modifier = Modifier
                 .padding(bottom = 16.dp)
                 .clickable(onClick = onLogout)
@@ -236,48 +247,47 @@ fun ProfileContentScreen(
 
 @Composable
 fun ProfileCardItem(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     label: String,
     value: String? = null,
     trailingContent: @Composable (() -> Unit)? = null
 ) {
-    Card (
+    Card(
         modifier = modifier
-            .defaultMinSize(minHeight = 48.dp)
+            .defaultMinSize(minHeight = 64.dp)
             .fillMaxWidth()
             .border(
-                BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                shape = RoundedCornerShape(16.dp)
+                BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                shape = RoundedCornerShape(12.dp)
             ),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(12.dp),
     ) {
         Row(
-            modifier = modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-
-            ) {
-            Column(modifier = Modifier.weight(1f)) {
+        ) {
+            Column() {
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 if (value != null) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = value,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
             if (trailingContent != null) {
                 trailingContent()
             }
-
         }
     }
 }
