@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ImageNotSupported
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.Sell
@@ -256,7 +257,7 @@ fun InventoryItem(
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
-    val statusText = when (currentStatus?.uppercase()) {
+    val statusText = when (currentStatus.uppercase()) {
         "CREATED" -> "Criado"
         "VERIFIED" -> "Verificado"
         "STOLEN" -> "Roubado"
@@ -284,15 +285,38 @@ fun InventoryItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            AsyncImage(
-                model = item.image,
-                contentDescription = "Imagem de ${item.name}",
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop,
-            )
-
+            if (item.image != null) {
+                AsyncImage(
+                    model = item.image,
+                    contentDescription = "Imagem de ${item.name}",
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop,
+                )
+            } else {
+                Box(
+                    Modifier
+                        .size(56.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            RoundedCornerShape(12.dp)
+                        )
+                        .border(
+                            2.dp,
+                            MaterialTheme.colorScheme.surfaceVariant,
+                            RoundedCornerShape(12.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ImageNotSupported,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
             Spacer(Modifier.size(14.dp))
 
             Column(
