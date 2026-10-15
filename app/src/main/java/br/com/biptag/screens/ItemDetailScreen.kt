@@ -18,7 +18,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
@@ -148,8 +147,6 @@ fun ItemDetailScreen(navController: NavController, itemId: Int) {
 
 @Composable
 fun ItemHeaderSection(item: Item) {
-
-    // TODO Ajustar imagem para ficar na box toda.
 
     val statusText = when (item.status?.lowercase()) {
         "verified", "verificado" -> "Verificado"
@@ -391,19 +388,61 @@ fun RfidActionCard(navController: NavController, item: Item) {
             }
             Spacer(modifier = Modifier.height(12.dp))
 
-            // TODO verificar se o item já tem alerta emitido e se tiver jogar para a tela de Alerta Emitido mostrando o status atualizado.
+            val issuedAlert = item.status?.lowercase() in listOf("lost", "stolen", "perdido", "roubado")
 
-            PrimaryButton(
-                text = "Reportar perda ou roubo",
-                icon = Icons.Outlined.WarningAmber,
-                containerColor = Color(0xFFDC4D3C),
-                onClick = {
-                    item.id?.let { id ->
-                        navController.navigate(Destination.ReportItemScreen.createRoute(id))
+            if (issuedAlert) {
+                IssuedAlertCard(status = item.status)
+            } else {
+                PrimaryButton(
+                    text = "Reportar perda ou roubo",
+                    icon = Icons.Outlined.WarningAmber,
+                    containerColor = Color(0xFFDC4D3C),
+                    onClick = {
+                        item.id?.let { id ->
+                            navController.navigate(Destination.ReportItemScreen.createRoute(id))
+                        }
                     }
-                }
-            )
+                )
+            }
         }
+    }
+}
+
+@Composable
+fun IssuedAlertCard(status: String?) {
+    val mensagem = when (status?.lowercase()) {
+        "stolen", "roubado" -> "Alerta de roubo já emitido para este item"
+        "lost", "perdido" -> "Alerta de perda já emitido para este item"
+        else -> "Alerta já emitido para este item"
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.errorContainer,
+                shape = RoundedCornerShape(16.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.error.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(16.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.WarningAmber,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = mensagem,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error
+        )
     }
 }
 

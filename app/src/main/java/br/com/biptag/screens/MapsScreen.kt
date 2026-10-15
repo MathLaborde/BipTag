@@ -7,7 +7,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.PedalBike
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,21 +24,18 @@ import br.com.biptag.components.TopBar
 import br.com.biptag.model.Alert
 import br.com.biptag.model.Item
 import br.com.biptag.repository.AlertRepository
-import br.com.biptag.repository.ItemRepository
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import kotlinx.coroutines.launch
-import androidx.compose.material.icons.outlined.Backpack
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 
-// Estrutura auxiliar para juntar o Alerta com os dados do Item na tela
 data class MapAlertData(
     val alert: Alert,
     val item: Item?
@@ -61,6 +57,29 @@ fun MapsScreen(navController: NavController, onItemClick: (Int) -> Unit = {}) {
     var isLoading by remember { mutableStateOf(true) }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    val filteredMapDataList = remember(mapDataList, searchQuery) {
+        if (searchQuery.isBlank()) {
+            mapDataList
+        } else {
+            mapDataList.filter { data ->
+                data.item?.name?.contains(searchQuery, ignoreCase = true) == true
+            }
+        }
+    }
+
+    LaunchedEffect(filteredMapDataList, searchQuery) {
+        if (searchQuery.isNotBlank() && filteredMapDataList.size == 1) {
+            val data = filteredMapDataList.first()
+            val position = LatLng(
+                data.alert.lastSeenLat ?: 0.0,
+                data.alert.lastSeenLng ?: 0.0
+            )
+            cameraPositionState.animate(
+                CameraUpdateFactory.newLatLngZoom(position, 16f)
+            )
+        }
+    }
 
     LaunchedEffect(navBackStackEntry) {
         isLoading = true
@@ -98,7 +117,7 @@ fun MapsScreen(navController: NavController, onItemClick: (Int) -> Unit = {}) {
                     myLocationButtonEnabled = false
                 )
             ) {
-                mapDataList.forEach { data ->
+                filteredMapDataList.forEach { data ->
                     val position = LatLng(data.alert.lastSeenLat ?: 0.0, data.alert.lastSeenLng ?: 0.0)
                     val isItem = data.item != null
                     val iconHue = if (isItem) {
@@ -119,7 +138,6 @@ fun MapsScreen(navController: NavController, onItemClick: (Int) -> Unit = {}) {
                 }
             }
 
-            // TODO fazer a busca do mapa
             SearchAndLegendOverlay(
                 searchQuery = searchQuery,
                 onSearchQueryChange = { searchQuery = it }

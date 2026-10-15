@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MailOutline
@@ -151,6 +150,7 @@ fun TitleComponent() {
 fun FormLogin(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -216,11 +216,11 @@ fun FormLogin(navController: NavController) {
         )
         Spacer(modifier = Modifier.height(28.dp))
 
-        // TODO Colocar algo para mostrar que ta carregando, para o usuario não clicar varias vezes no botão
-
         PrimaryButton(
-            text = "Entrar",
+            text = if (isLoading) "Entrando..." else "Entrar",
+            enabled = !isLoading,
             onClick = {
+                isLoading = true
                 scope.launch {
                     try {
                         val auth = AuthRepository()
@@ -229,12 +229,15 @@ fun FormLogin(navController: NavController) {
                         withContext(Dispatchers.Main) {
                             if (auth.isLoggedIn()) {
                                 navController.navigate(Destination.InventoryScreen.route)
+                            } else {
+                                isLoading = false
                             }
                         }
                     } catch (e: Exception) {
                         println("Supabase Login Erro: ${e.message}")
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
+                            isLoading = false
                             Toast.makeText(context, "Falha ao Realizar o Login.", Toast.LENGTH_SHORT).show()
                         }
                     }
